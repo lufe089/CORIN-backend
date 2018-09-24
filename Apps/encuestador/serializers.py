@@ -13,22 +13,27 @@ from rest_framework.views import APIView
 from rest_framework import serializers
 from rest_framework.response import Response
 
-"""
-class ParametricTableSerializer(serializers.HyperlinkedModelSerializer):
-    #detailsParameters = ItemSerializer(many=True,read_only=True)
 
+class CompanySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        # model = Response_format
-        # fields = ('name', 'description','i18n_code','translations')
-        #fields = ('name', 'description', 'parametric_table')
-"""
-"""
+        model = Company
+        #fields = ('name', 'description','i18n_code','translations')
+        fields = ('company_contact_name')
+
+class ClientSerializer(serializers.HyperlinkedModelSerializer):
+    company = CompanySerializer(many=False, read_only=True)
+    class Meta:
+        model = Client
+        #fields = ('name', 'description','i18n_code','translations')
+        fields = ('company','max_surveys','used_surveys','contact')
+
 class ResponseFormatSerializer(serializers.HyperlinkedModelSerializer):
     parametric_table=serializers.PrimaryKeyRelatedField(many=False, read_only=True)
     class Meta:
         model = Response_format
         #fields = ('name', 'description','i18n_code','translations')
         fields = ('name','type','parametric_table')
+
 
 # Serializa el instrumento
 class InstrumentHeaderSerializer(serializers.HyperlinkedModelSerializer):
@@ -43,13 +48,13 @@ class InstrumentHeaderSerializer(serializers.HyperlinkedModelSerializer):
         # fields = ('name', 'description','i18n_code','translations')
         fields = ('version_name', 'is_active', 'start_date', 'end_date', "translations")
 
+
 class TranslatedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
     instrument_header = InstrumentHeaderSerializer(many=False, read_only=True)
 
     class Meta:
         model = Trans_instrument_header
-        fields = (
-        'instrument_header', 'id', 'general_description', 'feature_description', 'disclaimer', 'user_instructions',
+        fields = ( 'id', 'general_description', 'feature_description', 'disclaimer', 'user_instructions',
         'contact_info', 'i18n_code')
 
 
@@ -57,24 +62,8 @@ class TranslatedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
 class SimpleItemClassificationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ItemClassification
-        # fields = ('name', 'description','i18n_code','translations')
-        # fields = ('id','name', 'itemsByCategory','itemsByDimension','itemsByComponent')
         fields = ('id','name','type')
-
-
-class ItemSerializer(serializers.HyperlinkedModelSerializer):
-    translations=serializers.StringRelatedField(many=True)
-    dimension=SimpleItemClassificationSerializer(many=False,read_only=True)
-    #category = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
-    category = SimpleItemClassificationSerializer(many=False,read_only=True)
-    response_format = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
-    component=SimpleItemClassificationSerializer(many=False,read_only=True)
-
-    class Meta:
-        model = Item
-        #fields = ('name', 'description','i18n_code','translations')
-        fields = ('id','response_format','item_order', 'dimension','category','component','translations')
-
+"""
 class ItemSimpleSerializer(serializers.HyperlinkedModelSerializer):
 
     dimension=SimpleItemClassificationSerializer(many=False,read_only=True)
@@ -102,18 +91,7 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
         #fields = ('name', 'description','i18n_code','translations')
         fields = ('id','instrument_header','participant_name','email','last_update','is_complete','comments')
 
-class CompanySerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Company
-        #fields = ('name', 'description','i18n_code','translations')
-        fields = ('company_contact_name')
 
-class ClientSerializer(serializers.HyperlinkedModelSerializer):
-    company = CompanySerializer(many=False, read_only=True)
-    class Meta:
-        model = Client
-        #fields = ('name', 'description','i18n_code','translations')
-        fields = ('company','max_surveys','used_surveys','contact')
 
 class SurveysByClientSerializer(serializers.HyperlinkedModelSerializer):
     # client=ClientSerializer (many=False, read_only=True)
@@ -121,6 +99,19 @@ class SurveysByClientSerializer(serializers.HyperlinkedModelSerializer):
         model = Surveys_by_client
         #fields = ('name', 'description','i18n_code','translations')
         fields = ('participant_response_header','acces_code')
+
+class ItemSerializer(serializers.HyperlinkedModelSerializer):
+    translations=serializers.StringRelatedField(many=True)
+    dimension=SimpleItemClassificationSerializer(many=False,read_only=True)
+    #category = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    category = SimpleItemClassificationSerializer(many=False,read_only=True)
+    response_format = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    component=SimpleItemClassificationSerializer(many=False,read_only=True)
+
+    class Meta:
+        model = Item
+        #fields = ('name', 'description','i18n_code','translations')
+        fields = ('id','response_format','item_order', 'dimension','category','component','translations')
 
 class ItemClassificationSerializer(serializers.HyperlinkedModelSerializer):
     #itemsBycategory = serializers.StringRelatedField(many=True)
@@ -162,5 +153,4 @@ class InstrumentStructureHistorySerializerOnlyActiveItems(serializers.Hyperlinke
         class Meta:
             model = Instrument_structure_history
             fields = ('new_item', 'is_active','start_date')
-
 """

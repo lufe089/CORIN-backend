@@ -24,6 +24,7 @@ def insert_data(apps, schema_editor):
     Client = apps.get_model(APP_NAME, 'Client')
     Surveys_by_client= apps.get_model(APP_NAME, 'Surveys_by_client')
     Customized_instrument= apps.get_model(APP_NAME, 'Customized_instrument')
+    Config_surveys_by_clients= apps.get_model(APP_NAME, 'Config_surveys_by_clients')
 
     ###  Clean the data from the tables in which we introduce data in this method
     Instrument_structure_history.objects.all().delete()
@@ -793,11 +794,15 @@ def insert_data(apps, schema_editor):
     companyTest.save()
 
     # Se crea un cliente de prueba
-    clientTest = Client(company=companyTest,max_surveys=10, used_surveys=0, client_logo="",contact="Julia Clemencia" )
+    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia" )
     clientTest.save()
 
+    # Se configura un survey personalizado
+    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, resulting_URL="",client_company_name="Empresa 1", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False,used_surveys=0)
+    config_survey.save()
+
     # Se crea un survey personalizado para el cliente
-    customized_instrument= Customized_instrument (client=clientTest, company=companyTest,num_completed_responses=0,instrument_header=instrument_header)
+    customized_instrument= Customized_instrument (client=clientTest,num_completed_responses=0,instrument_header=instrument_header, custom_contact_info=contact, custom_user_instructions=user_instructions)
     customized_instrument.save()
 
     # Se crean un survey para el cliente de prueba para hacer pruebas
