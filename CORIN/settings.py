@@ -126,13 +126,24 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.9/howto/static-files/
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-import dj_database_url
 
+# Added to support heroku config
+#import dj_database_url
+import django_heroku
+
+# Activate Django-Heroku.
+django_heroku.settings(locals())
+
+"""
 DATABASES = { 'default' : dj_database_url.config()}
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+"""
 
 # try to load local_settings.py if it exists
 try:
