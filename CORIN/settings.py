@@ -133,10 +133,10 @@ STATIC_URL = '/static/'
 
 # Added to support heroku config
 import dj_database_url
-import django_heroku
+#import django_heroku
 
 # Activate Django-Heroku.
-django_heroku.settings(locals())
+#django_heroku.settings(locals())
 
 
 DATABASES = { 'default' : dj_database_url.config()}
