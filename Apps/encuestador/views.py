@@ -20,9 +20,9 @@ import logging
 from Apps.encuestador.serializers import CompanySerializer
 from Apps.encuestador.serializers import ResponseFormatSerializer
 from Apps.encuestador.serializers import TranslatedInstrumentSerializer
+from Apps.encuestador.serializers import TranslatedItemSerializer
 from Apps.encuestador.serializers import SimpleItemClassificationSerializer
 """
-from Apps.encuestador.serializers import TranslatedItemSerializer
 from Apps.encuestador.serializers import ItemSerializer
 from Apps.encuestador.serializers import ItemClassificationSerializer
 from Apps.encuestador.serializers import ParticipantResponseHeaderSerializer
@@ -40,6 +40,14 @@ from rest_framework.decorators import action
 
 """Endpoint that allows the database objects to be viewed or edited."""
 
+def consultActiveInstrument():
+    try:
+        active_instrument = Instrument_header.objects.get(is_active=True)
+        return active_instrument
+    except Exception as e:
+        print("ERROR: Excepcion consultando instrument_header , el get no arrojo resultados en el metodo InstructionsSpanishViewSet")
+        return None
+
 class CompanyViewSet (viewsets.ModelViewSet):
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
@@ -50,27 +58,19 @@ class ResponseFormatViewSet(viewsets.ModelViewSet):
 
 class InstructionsSpanishViewSet(viewsets.ModelViewSet):
     serializer_class = TranslatedInstrumentSerializer
-    # Traigo el instrumento activo
-    try:
-        active_instrument = Instrument_header.objects.get(is_active=True)
-        queryset = Trans_instrument_header.objects.filter(instrument_header=active_instrument).filter(
+    active_instrument=consultActiveInstrument()
+    queryset = Trans_instrument_header.objects.filter(instrument_header=active_instrument).filter(
             i18n_code=LanguageChoice.ES.name)
-    except Exception as e:
-        print("Excepcion consultando instrument_header , el get no arrojo resultados, metodo InstructionsSapnishViewSet")
-        queryset = Instrument_header.objects.filter(is_active=True)
-
-
-"""
 
 class SpanishActiveItemsViewSet (viewsets.ModelViewSet):
     serializer_class = TranslatedItemSerializer
     # Traigo el instrumento activo
-    active_instrument = Instrument_header.objects.get(is_active=True)
+    active_instrument = consultActiveInstrument()
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     activeItemsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__id')
     queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name)
-
+"""
 class ItemsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     #queryset = Item.objects.all()

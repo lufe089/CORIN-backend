@@ -51,10 +51,9 @@ class InstrumentHeaderSerializer(serializers.HyperlinkedModelSerializer):
 
 class TranslatedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
     instrument_header = InstrumentHeaderSerializer(many=False, read_only=True)
-
     class Meta:
         model = Trans_instrument_header
-        fields = ( 'id', 'general_description', 'feature_description', 'disclaimer', 'user_instructions',
+        fields = ( 'instrument_header','id', 'general_description', 'feature_description', 'disclaimer', 'user_instructions',
         'contact_info', 'i18n_code')
 
 
@@ -63,7 +62,7 @@ class SimpleItemClassificationSerializer(serializers.HyperlinkedModelSerializer)
     class Meta:
         model = ItemClassification
         fields = ('id','name','type')
-"""
+
 class ItemSimpleSerializer(serializers.HyperlinkedModelSerializer):
 
     dimension=SimpleItemClassificationSerializer(many=False,read_only=True)
@@ -76,6 +75,7 @@ class ItemSimpleSerializer(serializers.HyperlinkedModelSerializer):
         model = Item
         #fields = ('name', 'description','i18n_code','translations')
         fields = ('response_format','item_order', 'dimension','category','component')
+
 
 # Serializador usado para dibujar el instrumento
 class TranslatedItemSerializer(serializers.HyperlinkedModelSerializer):
@@ -91,14 +91,13 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
         #fields = ('name', 'description','i18n_code','translations')
         fields = ('id','instrument_header','participant_name','email','last_update','is_complete','comments')
 
-
-
 class SurveysByClientSerializer(serializers.HyperlinkedModelSerializer):
     # client=ClientSerializer (many=False, read_only=True)
     class Meta:
         model = Surveys_by_client
         #fields = ('name', 'description','i18n_code','translations')
         fields = ('participant_response_header','acces_code')
+
 
 class ItemSerializer(serializers.HyperlinkedModelSerializer):
     translations=serializers.StringRelatedField(many=True)
@@ -119,21 +118,17 @@ class ItemClassificationSerializer(serializers.HyperlinkedModelSerializer):
     #itemsByCategory = ItemSerializer(many=True,read_only=True)
     #itemsByCategory = ItemSerializer(many=True,read_only=True)
 
-    # Traigo el instrumento activo
-    active_instrument = Instrument_header.objects.get(is_active=True)
-    itemsByInstrument = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(is_active=True).values(
-    'new_item')
-
     #itemsByCategory = serializers.SlugRelatedField (queryset=itemsByInstrument,many=True,slug_field='category')
     itemsByCategory = ItemSerializer(many=True,read_only=True)
-    #itemsByDimension = ItemSerializer(many=True,read_only=True)
-    #itemsByComponent = ItemSerializer(many=True,read_only=True)
+    itemsByDimension = ItemSerializer(many=True,read_only=True)
+    itemsByComponent = ItemSerializer(many=True,read_only=True)
 
     class Meta:
         model = ItemClassification
         # fields = ('name', 'description','i18n_code','translations')
         #fields = ('id','name', 'itemsByCategory','itemsByDimension','itemsByComponent')
         fields = ('id','name', 'itemsByCategory')
+
 
 # Serializa el historico de un item
 class InstrumentStructureHistorySerializerFull(serializers.HyperlinkedModelSerializer):
@@ -153,4 +148,3 @@ class InstrumentStructureHistorySerializerOnlyActiveItems(serializers.Hyperlinke
         class Meta:
             model = Instrument_structure_history
             fields = ('new_item', 'is_active','start_date')
-"""
