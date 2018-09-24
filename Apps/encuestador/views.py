@@ -57,6 +57,7 @@ class InstructionsSpanishViewSet(viewsets.ModelViewSet):
             i18n_code=LanguageChoice.ES.name)
     except Exception as e:
         print("Excepcion consultando instrument_header , el get no arrojo resultados, metodo InstructionsSapnishViewSet")
+        queryset = Instrument_header.objects.filter(is_active=True)
 
 
 """
