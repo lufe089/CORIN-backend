@@ -22,6 +22,7 @@ class ParametricTableSerializer(serializers.HyperlinkedModelSerializer):
         # fields = ('name', 'description','i18n_code','translations')
         #fields = ('name', 'description', 'parametric_table')
 """
+"""
 class ResponseFormatSerializer(serializers.HyperlinkedModelSerializer):
     parametric_table=serializers.PrimaryKeyRelatedField(many=False, read_only=True)
     class Meta:
@@ -162,4 +163,4 @@ class InstrumentStructureHistorySerializerOnlyActiveItems(serializers.Hyperlinke
             model = Instrument_structure_history
             fields = ('new_item', 'is_active','start_date')
 
-
+"""

@@ -14,6 +14,7 @@ from Apps.encuestador.models import Company
 from Apps.encuestador.models import Response_format
 from Apps.encuestador.models import Surveys_by_client
 from rest_framework import viewsets
+"""
 from Apps.encuestador.serializers import ItemSerializer
 from Apps.encuestador.serializers import ItemClassificationSerializer
 from Apps.encuestador.serializers import TranslatedItemSerializer
@@ -22,7 +23,7 @@ from Apps.encuestador.serializers import SimpleItemClassificationSerializer
 from Apps.encuestador.serializers import CompanySerializer
 from Apps.encuestador.serializers import ResponseFormatSerializer
 from Apps.encuestador.serializers import SurveysByClientSerializer
-
+"""
 
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -34,11 +35,8 @@ from rest_framework.decorators import action
 # Create your views here.
 
 """Endpoint that allows the database objects to be viewed or edited."""
-
+"""
 class ItemsViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
     serializer_class = ItemSerializer
     #queryset = Item.objects.all()
     # Traigo el instrumento activo
@@ -85,15 +83,17 @@ class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
     categoriesId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__category__id').distinct()
     queryset = ItemClassification.objects.filter(id__in=categoriesId)
-
+"""
 
 """ Retorna el Json con los items y sus traducciones agrupados por categoria, el mismo serializar
 se usa para agrupar por dimension y por componente"""
-
+"""
 class CategoriesViewSet(viewsets.ModelViewSet):
     serializer_class = ItemClassificationSerializer
     queryset = ItemClassification.objects.filter(type=ClassificationChoice.CATEGORY.value)
-    """
+
+"""
+"""
     # Traigo el instrumento activo
     active_instrument = Instrument_header.objects.get(is_active=True)
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
@@ -120,7 +120,7 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     #queryset = ItemClassification.objects.filter(type=ClassificationChoice.DIMENSION.value).filter(itemsByCategory__in=itemsByInstrument)
     #queryset = ItemClassification.objects.filter(type=ClassificationChoice.DIMENSION.value).distinct()
     """
-
+"""
 class DimensionsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemClassificationSerializer
     queryset = ItemClassification.objects.filter(type=ClassificationChoice.DIMENSION.value)
@@ -140,7 +140,7 @@ class InstructionsSpanishViewSet(viewsets.ModelViewSet):
 class ResponseFormatViewSet(viewsets.ModelViewSet):
     serializer_class = ResponseFormatSerializer
     queryset = Response_format.objects.all()
-
+"""
 """
 class InstrumentInstructionsViewSet(viewsets.ModelViewSet):
     #serializer_class=InstrumentSerializer

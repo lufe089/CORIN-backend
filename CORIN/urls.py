@@ -21,17 +21,17 @@ from rest_framework import routers
 from Apps.encuestador import views
 
 router = routers.DefaultRouter()
-router.register(r'items', views.ItemsViewSet)
-router.register(r'simpleActiveCategories', views.SimpleActiveCategoriesViewSet)
+#router.register(r'items', views.ItemsViewSet)
+#router.register(r'simpleActiveCategories', views.SimpleActiveCategoriesViewSet)
 #router.register(r'components', views.CategoriesViewSet)
 #router.register(r'dimensions', views.DimensionsViewSet)
-router.register(r'activeItems', views.OnlyActiveItems)
-router.register(r'responseFormats', views.ResponseFormatViewSet)
-router.register(r'instructionsSpanish', views.InstructionsSpanishViewSet)
-router.register(r'activeItemsSpanish', views.SpanishActiveItemsViewSet)
-router.register(r'participantsResponse', views.ParticipantResponseViewSet)
-router.register(r'surveysByClient', views.SurveysByClientViewSet)
-router.register(r'clients', views.ClientViewSet)
+#router.register(r'activeItems', views.OnlyActiveItems)
+#router.register(r'responseFormats', views.ResponseFormatViewSet)
+#router.register(r'instructionsSpanish', views.InstructionsSpanishViewSet)
+#router.register(r'activeItemsSpanish', views.SpanishActiveItemsViewSet)
+#router.register(r'participantsResponse', views.ParticipantResponseViewSet)
+#router.register(r'surveysByClient', views.SurveysByClientViewSet)
+#router.register(r'clients', views.ClientViewSet)
 
 
 # Wire up our API using automatic URL routing.
