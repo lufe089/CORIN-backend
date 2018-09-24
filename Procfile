@@ -1,1 +1,1 @@
-web: gunicorn corin.wsgi --log-file -
+web: gunicorn CORIN.wsgi --log-file -
