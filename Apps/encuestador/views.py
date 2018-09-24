@@ -42,7 +42,7 @@ from rest_framework.decorators import action
 
 def consultActiveInstrument():
     try:
-        active_instrument = Instrument_header.objects.get(is_active=True)
+        active_instrument = Instrument_header.objects.filter(is_active=True).first()
         return active_instrument
     except Exception as e:
         print("ERROR: Excepcion consultando instrument_header , el get no arrojo resultados en el metodo InstructionsSpanishViewSet")
