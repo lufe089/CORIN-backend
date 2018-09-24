@@ -23,10 +23,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '7ens10k(@3n)$)7kqktsbvvc#8(%vxphts4n4gzy%tk2b5-ud='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-TEMPLATE_DEBUG= True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+# Postgress compatibility
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
 	'Apps.encuestador',
 ]
 
@@ -50,9 +51,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'CORIN.urls'
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 TEMPLATES = [
     {
@@ -78,12 +82,8 @@ WSGI_APPLICATION = 'CORIN.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'mysql_cymysql',
-        'NAME': 'CORINDB',
-        'USER': 'devuser',
-        'PASSWORD': 'User1987',
-        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
-        'PORT': '3306',
+         # Heroku controls the username and password
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
     }
 }
 
@@ -125,3 +125,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+import dj_database_url
+
+DATABASES = { 'default' : dj_database_url.config()}
+
+# Honor the 'X-Forwarded-Proto' header for request.is_secure()
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# try to load local_settings.py if it exists
+try:
+  from .local_settings import *
+except Exception as e:
+  pass
