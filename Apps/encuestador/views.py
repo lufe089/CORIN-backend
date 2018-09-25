@@ -39,7 +39,7 @@ from rest_framework.decorators import action
 # Create your views here.
 
 """Endpoint that allows the database objects to be viewed or edited."""
-
+"""
 def consultActiveInstrument():
     try:
         #active_instrument = Instrument_header.objects.filter(is_active=True)[0]
@@ -127,6 +127,7 @@ class ComponentsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemClassificationSerializer
     queryset = ItemClassification.objects.filter(type=ClassificationChoice.COMPONENT.value)
 
+"""
 """
     # Traigo el instrumento activo
     active_instrument = consultActiveInstrument()
