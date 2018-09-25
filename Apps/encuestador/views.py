@@ -21,12 +21,12 @@ from Apps.encuestador.serializers import CompanySerializer
 from Apps.encuestador.serializers import ResponseFormatSerializer
 from Apps.encuestador.serializers import TranslatedInstrumentSerializer
 from Apps.encuestador.serializers import TranslatedItemSerializer
-from Apps.encuestador.serializers import SimpleItemClassificationSerializer
-"""
 from Apps.encuestador.serializers import ItemSerializer
+from Apps.encuestador.serializers import SimpleItemClassificationSerializer
 from Apps.encuestador.serializers import ItemClassificationSerializer
 from Apps.encuestador.serializers import ParticipantResponseHeaderSerializer
 from Apps.encuestador.serializers import SurveysByClientSerializer
+"""
 """
 
 from rest_framework import status
@@ -42,10 +42,11 @@ from rest_framework.decorators import action
 
 def consultActiveInstrument():
     try:
-        active_instrument = Instrument_header.objects.filter(is_active=True).first()
+        active_instrument = Instrument_header.objects.filter(is_active=True)[0]
+        #active_instrument = Instrument_header.objects.all().first()
         return active_instrument
     except Exception as e:
-        print("ERROR: Excepcion consultando instrument_header , el get no arrojo resultados en el metodo InstructionsSpanishViewSet")
+        print("ERROR: Excepcion consultando instrument_header , el get no arrojo resultados en el metodo ConsultActiveInstrument")
         return None
 
 class CompanyViewSet (viewsets.ModelViewSet):
@@ -70,12 +71,12 @@ class SpanishActiveItemsViewSet (viewsets.ModelViewSet):
     activeItemsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__id')
     queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name)
-"""
+
 class ItemsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     #queryset = Item.objects.all()
     # Traigo el instrumento activo
-    active_instrument = Instrument_header.objects.get(is_active=True)
+    active_instrument = consultActiveInstrument()
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     activeItems = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__id')
@@ -84,7 +85,9 @@ class ItemsViewSet(viewsets.ModelViewSet):
 class OnlyActiveItems (viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     # Traigo el instrumento activo
-    active_instrument = Instrument_header.objects.get(is_active=True)
+    active_instrument =  consultActiveInstrument()
+    print ("Active instrument")
+    print (active_instrument)
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     activeItems = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(is_active=True).values('new_item__id')
     queryset = Item.objects.filter(id__in=activeItems)
@@ -99,11 +102,10 @@ class SurveysByClientViewSet (viewsets.ModelViewSet):
     queryset = Surveys_by_client.objects.all()
 
 
-
 class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleItemClassificationSerializer
     # Traigo el instrumento activo
-    active_instrument = Instrument_header.objects.get(is_active=True)
+    active_instrument = consultActiveInstrument()
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     categoriesId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__category__id').distinct()
@@ -124,16 +126,9 @@ class ComponentsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemClassificationSerializer
     queryset = ItemClassification.objects.filter(type=ClassificationChoice.COMPONENT.value)
 
-
-
-
-
-
-"""
-
 """
     # Traigo el instrumento activo
-    active_instrument = Instrument_header.objects.get(is_active=True)
+    active_instrument = consultActiveInstrument()
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     categoriesId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__category__id').distinct()

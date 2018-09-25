@@ -113,6 +113,7 @@ class Trans_instrument_header(models.Model):
     contact_info=models.TextField(default=None, null=True, blank=True)
     i18n_code = models.CharField(max_length=2)
 
+
     def __str__(self):  # __unicode__ on Python 2
          # Control instruction in case the description is null
         if self.general_description ==None:
