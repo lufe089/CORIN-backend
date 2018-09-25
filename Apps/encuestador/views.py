@@ -42,7 +42,8 @@ from rest_framework.decorators import action
 
 def consultActiveInstrument():
     try:
-        active_instrument = Instrument_header.objects.filter(is_active=True)[0]
+        #active_instrument = Instrument_header.objects.filter(is_active=True)[0]
+        active_instrument = None
         #active_instrument = Instrument_header.objects.all().first()
         return active_instrument
     except Exception as e:
