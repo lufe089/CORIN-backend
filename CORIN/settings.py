@@ -241,8 +241,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'mysql_cymysql',
         'NAME': 'CORINDB',
-        'USER': 'devuser',
-        'PASSWORD': 'User1987',
+        'USER': 'zalonore',
+        'PASSWORD': 'webiando',
         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     }
@@ -286,3 +286,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# try to load local_settings.py if it exists
+try:
+  from .local_settings import *
+except Exception as e:
+  pass

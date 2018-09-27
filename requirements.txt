@@ -23,3 +23,7 @@ whitenoise
 
 # Postgress
 psycopg2-binary
+
+#Mysql database connection
+cymysql
+django-cymysql
