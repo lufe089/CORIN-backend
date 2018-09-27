@@ -142,7 +142,6 @@ class Company(models.Model):
 
 class Client(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    max_surveys = models.IntegerField()
     client_logo = models.CharField(max_length=100)
     contact = models.CharField(max_length=50)
     client_company_name = models.CharField(max_length=100)
@@ -150,7 +149,6 @@ class Client(models.Model):
     number_employees = models.IntegerField()
     is_corporate_group = models.BooleanField()
     is_family_company = models.BooleanField()
-    used_surveys=  models.IntegerField(default=0)
 
 
 class Config_surveys_by_clients(models.Model):
@@ -158,6 +156,7 @@ class Config_surveys_by_clients(models.Model):
     instrument_header = models.ForeignKey(Instrument_header, on_delete=models.CASCADE)
     resulting_URL = models.URLField(default=None, null=True, blank=True)
     max_surveys= models.IntegerField(default=None, null=True, blank=True)
+    used_surveys=  models.IntegerField(default=0)
     JSON_instrument_file = models.BinaryField(default=None, null=True, blank=True)
 
 class Customized_instrument(models.Model):
@@ -173,9 +172,17 @@ class Customized_instrument(models.Model):
     custom_user_instructions = models.TextField(default=None, null=True, blank=True)
     custom_contact_info=models.TextField(default=None, null=True, blank=True)
 
+class Surveys_by_client(models.Model):
+    config_survey= models.ForeignKey(Config_surveys_by_clients, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    acces_code = models.CharField(max_length=50)
+    completed = models.BooleanField(default=False)
+    #participant_response_header= models.ForeignKey(Participant_response_header, on_delete=models.CASCADE, default=None, null=True, blank=True)
+
 class Participant_response_header(models.Model):
     customized_instrument = models.ForeignKey(Customized_instrument, on_delete=models.CASCADE)
-    instrument_header = models.ForeignKey(Instrument_header, on_delete=models.CASCADE)
+    survey_by_client = models.ForeignKey(Surveys_by_client, on_delete=models.CASCADE)
     email = models.EmailField()
     last_update = models.DateTimeField()
     is_complete = models.BooleanField(default=None)
@@ -183,14 +190,6 @@ class Participant_response_header(models.Model):
     isADirective =  models.BooleanField()
     position = models.IntegerField(default=None, null=True, blank=True)
     area = models.IntegerField()
-
-class Surveys_by_client(models.Model):
-    survey_configuration= models.ForeignKey(Config_surveys_by_clients, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    acces_code = models.CharField(max_length=50)
-    completed = models.BooleanField(default=False)
-    participant_response_header= models.ForeignKey(Participant_response_header, on_delete=models.CASCADE, default=None, null=True, blank=True)
 
 
 class Items_respon_by_participants(models.Model):

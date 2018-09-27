@@ -17,15 +17,14 @@ from rest_framework.response import Response
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Company
-        #fields = ('name', 'description','i18n_code','translations')
-        fields = ('company_contact_name')
+        fields = ('company_contact_name',)
 
 class ClientSerializer(serializers.HyperlinkedModelSerializer):
-    company = CompanySerializer(many=False, read_only=True)
+    #company = CompanySerializer(many=False, read_only=True)
     class Meta:
         model = Client
         #fields = ('name', 'description','i18n_code','translations')
-        fields = ('company','max_surveys','used_surveys','contact')
+        fields = ('max_surveys','used_surveys','contact')
 
 class ResponseFormatSerializer(serializers.HyperlinkedModelSerializer):
     parametric_table=serializers.PrimaryKeyRelatedField(many=False, read_only=True)
@@ -85,11 +84,12 @@ class TranslatedItemSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','name','item')
 
 class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer):
-    instrument_header=InstrumentHeaderSerializer(many=False,read_only=False)
+    # instrument_header=InstrumentHeaderSerializer(many=False,read_only=False)
+
     class Meta:
         model = Participant_response_header
         #fields = ('name', 'description','i18n_code','translations')
-        fields = ('id','instrument_header','participant_name','email','last_update','is_complete','comments')
+        fields = ('id','email','comments','isADirective','position','area')
 
 class SurveysByClientSerializer(serializers.HyperlinkedModelSerializer):
     # client=ClientSerializer (many=False, read_only=True)
@@ -126,8 +126,7 @@ class ItemClassificationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ItemClassification
         # fields = ('name', 'description','i18n_code','translations')
-        #fields = ('id','name', 'itemsByCategory','itemsByDimension','itemsByComponent')
-        fields = ('id','name', 'itemsByCategory')
+        fields = ('id','name', 'itemsByCategory','itemsByDimension','itemsByComponent')
 
 
 # Serializa el historico de un item

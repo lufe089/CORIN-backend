@@ -40,6 +40,7 @@ def insert_data(apps, schema_editor):
     Company.objects.all().delete()
     Client.objects.all().delete()
     Surveys_by_client.objects.all().delete()
+    Config_surveys_by_clients.objects.all().delete()
     Customized_instrument.objects.all().delete()
 
 
@@ -794,19 +795,20 @@ def insert_data(apps, schema_editor):
     companyTest.save()
 
     # Se crea un cliente de prueba
-    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia" )
+    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia",client_company_name="Empresa 1", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False)
     clientTest.save()
 
+
     # Se configura un survey personalizado
-    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, resulting_URL="",client_company_name="Empresa 1", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False,used_surveys=0)
+    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, resulting_URL="",max_surveys=5,used_surveys=0)
     config_survey.save()
 
     # Se crea un survey personalizado para el cliente
-    customized_instrument= Customized_instrument (client=clientTest,num_completed_responses=0,instrument_header=instrument_header, custom_contact_info=contact, custom_user_instructions=user_instructions)
+    customized_instrument= Customized_instrument (config_survey=config_survey, client=clientTest,num_completed_responses=0,custom_contact_info=contact, custom_user_instructions=user_instructions)
     customized_instrument.save()
 
     # Se crean un survey para el cliente de prueba para hacer pruebas
-    survey_by_client = Surveys_by_client(client=clientTest, acces_code="12345",customized_instrument=customized_instrument)
+    survey_by_client = Surveys_by_client(client=clientTest, company=companyTest, acces_code="12345",config_survey=config_survey)
     survey_by_client.save()
 
 

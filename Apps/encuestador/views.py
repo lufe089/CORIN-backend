@@ -39,11 +39,11 @@ from rest_framework.decorators import action
 # Create your views here.
 
 """Endpoint that allows the database objects to be viewed or edited."""
-"""
+
 def consultActiveInstrument():
     try:
-        #active_instrument = Instrument_header.objects.filter(is_active=True)[0]
-        active_instrument = None
+        active_instrument = Instrument_header.objects.filter(is_active=1)[0]
+        # active_instrument = None
         #active_instrument = Instrument_header.objects.all().first()
         return active_instrument
     except Exception as e:
@@ -71,7 +71,8 @@ class SpanishActiveItemsViewSet (viewsets.ModelViewSet):
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     activeItemsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__id')
-    queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name)
+    #Agregue filtro para facilitar pruebas
+    queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name).filter(item__dimension__id = 7)
 
 class ItemsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
@@ -87,7 +88,7 @@ class OnlyActiveItems (viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     # Traigo el instrumento activo
     active_instrument =  consultActiveInstrument()
-    print ("Active instrument")
+    print ("Imprimo lo que tiene el instrumento")
     print (active_instrument)
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     activeItems = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(is_active=True).values('new_item__id')
@@ -127,7 +128,7 @@ class ComponentsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemClassificationSerializer
     queryset = ItemClassification.objects.filter(type=ClassificationChoice.COMPONENT.value)
 
-"""
+
 """
     # Traigo el instrumento activo
     active_instrument = consultActiveInstrument()
