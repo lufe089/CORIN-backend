@@ -182,21 +182,19 @@ class Surveys_by_client(models.Model):
 
 class Participant_response_header(models.Model):
     customized_instrument = models.ForeignKey(Customized_instrument, on_delete=models.CASCADE)
-    survey_by_client = models.ForeignKey(Surveys_by_client, on_delete=models.CASCADE)
     email = models.EmailField()
-    last_update = models.DateTimeField()
+    last_update = models.DateTimeField(auto_now=True)
     is_complete = models.BooleanField(default=None)
     comments = models.TextField(default=None, null=True, blank=True)
-    isADirective =  models.BooleanField()
+    is_directive =  models.BooleanField()
     position = models.IntegerField(default=None, null=True, blank=True)
     area = models.IntegerField()
 
 
 class Items_respon_by_participants(models.Model):
-    participant_response_header = models.ForeignKey(Participant_response_header, on_delete=models.CASCADE)
+    participant_response_header = models.ForeignKey(Participant_response_header, related_name="responsesList", on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     answer_numeric = models.IntegerField()
-    answer_text = models.TextField()
 
 class User (models.Model):
     username = models.CharField(max_length=50)

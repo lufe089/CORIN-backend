@@ -22,14 +22,17 @@ from Apps.encuestador import views
 
 router = routers.DefaultRouter()
 
-router.register(r'company', views.CompanyViewSet)
+router.register(r'companies', views.CompanyViewSet)
 router.register(r'responseFormats', views.ResponseFormatViewSet)
 router.register(r'items', views.ItemsViewSet)
 router.register(r'simpleActiveCategories', views.SimpleActiveCategoriesViewSet)
+router.register(r'clients', views.ClientViewSet)
+router.register(r'configSurveys', views.ConfigSurveysByClientsViewSet)
 #router.register(r'components', views.CategoriesViewSet)
 #router.register(r'dimensions', views.DimensionsViewSet)
 router.register(r'activeItems', views.OnlyActiveItems)
 router.register(r'instructionsSpanish', views.InstructionsSpanishViewSet)
+router.register(r'customizedInstrument', views.CustomizedInstrumentViewSet)
 router.register(r'activeItemsSpanish', views.SpanishActiveItemsViewSet)
 router.register(r'participantsResponse', views.ParticipantResponseViewSet)
 router.register(r'surveysByClient', views.SurveysByClientViewSet)
