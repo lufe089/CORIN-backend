@@ -410,15 +410,15 @@ def insert_data(apps, schema_editor):
     categoria = cat_entorno_estrateg
 
     itemEntEst1 = Item(item_order=1, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
-    itemEntEst2 = Item(item_order=2, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst3 = Item(item_order=3, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst4 = Item(item_order=4, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemEntEst2 = Item(item_order=2, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemEntEst3 = Item(item_order=3, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemEntEst4 = Item(item_order=4, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
     itemEntEst5 = Item(item_order=5, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
-    itemEntEst6 = Item(item_order=6, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst7 = Item(item_order=7, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst8 = Item(item_order=8, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst9 = Item(item_order=9, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst10 = Item(item_order=10, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemEntEst6 = Item(item_order=6, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemEntEst7 = Item(item_order=7, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemEntEst8 = Item(item_order=8, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemEntEst9 = Item(item_order=9, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemEntEst10 = Item(item_order=10, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
     itemEntEst11 = Item(item_order=11, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
 
     itemEntEst1.save()
@@ -482,17 +482,17 @@ def insert_data(apps, schema_editor):
     # Estructura subitems
     categoria = cat_estructura
 
-    itemEstru1 = Item(item_order=1, dimension=dim_complOrga, category=categoria,
+    itemEstru1 = Item(item_order=1, component=comp_especializacion, dimension=dim_complOrga, category=categoria,
                        response_format=response_format_items_variable)
-    itemEstru2 = Item(item_order=2, dimension=dim_controlBuroc, category=categoria,
+    itemEstru2 = Item(item_order=2, component=comp_centralizacion, dimension=dim_controlBuroc, category=categoria,
                        response_format=response_format_items_variable)
-    itemEstru3 = Item(item_order=3, dimension=dim_complOrga, category=categoria,
+    itemEstru3 = Item(item_order=3, component=comp_diferenFuncional, dimension=dim_complOrga, category=categoria,
                        response_format=response_format_items_variable)
-    itemEstru4 = Item(item_order=4, dimension=dim_controlBuroc, category=categoria,
+    itemEstru4 = Item(item_order=4, component=comp_formalizacion, dimension=dim_controlBuroc, category=categoria,
                        response_format=response_format_items_variable)
-    itemEstru5 = Item(item_order=5, dimension=dim_complOrga, category=categoria,
+    itemEstru5 = Item(item_order=5, component=comp_profesionalismo, dimension=dim_complOrga, category=categoria,
                        response_format=response_format_items_variable)
-    itemEstru6 = Item(item_order=6, dimension=dim_controlBuroc, category=categoria,
+    itemEstru6 = Item(item_order=6, component=comp_diferenVertical, dimension=dim_controlBuroc, category=categoria,
                        response_format=response_format_items_variable)
 
     itemEstru1.save()
@@ -531,17 +531,17 @@ def insert_data(apps, schema_editor):
     # Liderazgo y Metricas subitems
     categoria = cat_liderazgo
 
-    itemLider1 = Item(item_order=1, dimension=dim_liderazgo, category=categoria,
+    itemLider1 = Item(item_order=1, component=comp_influeIdealizada, dimension=dim_liderazgo, category=categoria,
                       response_format=response_format_items_variable)
-    itemLider2 = Item(item_order=2, dimension=dim_metri, category=categoria,
+    itemLider2 = Item(item_order=2, component=comp_metricas, dimension=dim_metri, category=categoria,
                       response_format=response_format_items_variable)
-    itemLider3 = Item(item_order=3, dimension=dim_liderazgo, category=categoria,
+    itemLider3 = Item(item_order=3, component=comp_motivacion, dimension=dim_liderazgo, category=categoria,
                       response_format=response_format_items_variable)
-    itemLider4 = Item(item_order=4, dimension=dim_liderazgo, category=categoria,
+    itemLider4 = Item(item_order=4, component=comp_estimuIntelec, dimension=dim_liderazgo, category=categoria,
                       response_format=response_format_items_variable)
-    itemLider5 = Item(item_order=5, dimension=dim_metri, category=categoria,
+    itemLider5 = Item(item_order=5, component=comp_retribucion, dimension=dim_metri, category=categoria,
                       response_format=response_format_items_variable)
-    itemLider6 = Item(item_order=6, dimension=dim_liderazgo, category=categoria,
+    itemLider6 = Item(item_order=6, component=comp_considIndividualizada, dimension=dim_liderazgo, category=categoria,
                       response_format=response_format_items_variable)
 
     itemLider1.save()
