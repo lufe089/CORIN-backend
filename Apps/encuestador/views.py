@@ -89,7 +89,8 @@ class SpanishActiveItemsViewSet (viewsets.ModelViewSet):
     activeItemsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__id')
     #Agregue filtro para facilitar pruebas
-    queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name).filter(item__dimension__id = 7)
+    #queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name).filter(item__dimension__id = 7)
+    queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name)
 
 class ItemsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
@@ -144,8 +145,26 @@ class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
     queryset = ItemClassification.objects.filter(id__in=categoriesId)
 
 
-# Retorna el Json con los items y sus traducciones agrupados por categoria, el mismo serializar se usa para agrupar por dimension y por componente
+class SimpleActiveDimensionsViewSet(viewsets.ModelViewSet):
+    serializer_class = SimpleItemClassificationSerializer
+    # Traigo el instrumento activo
+    active_instrument = consultActiveInstrument()
+    # Traigo el id de los items asociadas al instrumento activo y que esten activos
+    dimensionsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
+        is_active=True).values('new_item__dimension__id').distinct()
+    queryset = ItemClassification.objects.filter(id__in=dimensionsId)
 
+class SimpleActiveComponentsViewSet(viewsets.ModelViewSet):
+    serializer_class = SimpleItemClassificationSerializer
+    # Traigo el instrumento activo
+    active_instrument = consultActiveInstrument()
+    # Traigo el id de los items asociadas al instrumento activo y que esten activos
+    dimensionsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
+        is_active=True).values('new_item__component__id').distinct()
+    queryset = ItemClassification.objects.filter(id__in=dimensionsId)
+
+# Retorna el Json con los items y sus traducciones agrupados por categoria, el mismo serializar se usa para agrupar por dimension y por componente
+"""
 class CategoriesViewSet(viewsets.ModelViewSet):
     serializer_class = ItemClassificationSerializer
     queryset = ItemClassification.objects.filter(type=ClassificationChoice.CATEGORY.value)
@@ -158,8 +177,6 @@ class ComponentsViewSet(viewsets.ModelViewSet):
     serializer_class = ItemClassificationSerializer
     queryset = ItemClassification.objects.filter(type=ClassificationChoice.COMPONENT.value)
 
-
-"""
     # Traigo el instrumento activo
     active_instrument = consultActiveInstrument()
     # Traigo el id de los items asociadas al instrumento activo y que esten activos

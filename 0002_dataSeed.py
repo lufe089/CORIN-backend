@@ -706,11 +706,11 @@ def insert_data(apps, schema_editor):
 
     ##### Instrument headers and basic structure
     instrument_header = Instrument_header(version_name="1.0.a1",is_active=True)
-    user_instructions= "No existen respuestas correctas, sólo queremos conocer su percepción sobre las cuestiones planteadas. Si de alguna de las preguntas no está totalmente seguro de la respuesta, no importa, nos interesa su estimación. Por favor, conteste todas las preguntas. En la mayoría de las preguntas se le proponen una serie de afirmaciones y se le pide que las valore puntuándolas entre 1 (si está en total desacuerdo con la afirmación) y 5 (si está totalmente de acuerdo con ella)."
-    contact="Si tiene alguna duda, no dude en contactar con nosotros (danieljj@um.es; teléfono: <strong>+57 6 868887900 </strong>)"
+    user_instructions= "<ul> <li>Por favor, conteste <span style='text-decoration: underline;'><strong>todas</strong> </span>las preguntas.</li><li>No existen respuestas correctas, s&oacute;lo queremos conocer <span style='text-decoration: underline;'><strong>su opini&oacute;</strong><strong>n</strong></span> sobre las cuestiones planteadas.</li><li>Si de alguna de las preguntas no est&aacute; totalmente seguro de la respuesta, no importa, nos interesa su estimaci&oacute;n.</li><li>La mayor&iacute;a de las preguntas consiste en responder entre 1 (no se est&aacute; de acuerdo con la afirmaci&oacute;n) a 5 (se est&aacute; totalmente de acuerdo con la afirmaci&oacute;n). El resto de valores grad&uacute;an estos dos extremos. Se&ntilde;ale el valor m&aacute;s apropiado en cada caso.</li></ul>"
+    contact="Si tiene alguna duda, no dude en contactar con nosotros (jcnaranjov@unal.edu.co; teléfono: <strong>+57 6 8879300 ext. 50415 </strong>)"
+    thanks = "Gracias por participar"
     instrument_header.save()
-
-    trans_instrument_header = Trans_instrument_header(instrument_header=instrument_header,user_instructions=user_instructions,i18n_code=LanguageChoice.ES.name, contact_info=contact )
+    trans_instrument_header = Trans_instrument_header(instrument_header=instrument_header,user_instructions=user_instructions,i18n_code=LanguageChoice.ES.name, contact_info=contact,thanks=thanks )
     trans_instrument_header.save()
 
     # We add the items to the list of items in order to add those items to the instrument easily
@@ -804,7 +804,7 @@ def insert_data(apps, schema_editor):
     config_survey.save()
 
     # Se crea un survey personalizado para el cliente
-    customized_instrument= Customized_instrument (config_survey=config_survey, client=clientTest,num_completed_responses=0,custom_contact_info=contact, custom_user_instructions=user_instructions)
+    customized_instrument= Customized_instrument (config_survey=config_survey, client=clientTest,num_completed_responses=0,custom_contact_info=contact, custom_user_instructions=user_instructions, custom_thanks="Gracias por participar, hasta pronto. ")
     customized_instrument.save()
 
     # Se crean un survey para el cliente de prueba para hacer pruebas

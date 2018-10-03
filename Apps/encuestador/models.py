@@ -111,6 +111,7 @@ class Trans_instrument_header(models.Model):
     disclaimer = models.TextField(default=None, null=True, blank=True)
     user_instructions = models.TextField(default=None, null=True, blank=True)
     contact_info=models.TextField(default=None, null=True, blank=True)
+    thanks=models.TextField(default=None, null=True, blank=True)
     i18n_code = models.CharField(max_length=2)
 
 
@@ -171,6 +172,7 @@ class Customized_instrument(models.Model):
     custom_disclaimer = models.TextField(default=None, null=True, blank=True)
     custom_user_instructions = models.TextField(default=None, null=True, blank=True)
     custom_contact_info=models.TextField(default=None, null=True, blank=True)
+    custom_thanks=models.TextField(default=None, null=True, blank=True)
 
 class Surveys_by_client(models.Model):
     config_survey= models.ForeignKey(Config_surveys_by_clients, on_delete=models.CASCADE)
@@ -192,7 +194,7 @@ class Participant_response_header(models.Model):
 
 
 class Items_respon_by_participants(models.Model):
-    participant_response_header = models.ForeignKey(Participant_response_header, related_name="responsesList", on_delete=models.CASCADE)
+    participant_response_header = models.ForeignKey(Participant_response_header, related_name="responsesList", on_delete=models.CASCADE,default=None, null=True, blank=True)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     answer_numeric = models.IntegerField()
 

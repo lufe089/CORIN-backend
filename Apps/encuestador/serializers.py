@@ -68,8 +68,9 @@ class TranslatedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
     instrument_header = InstrumentHeaderSerializer(many=False, read_only=True)
     class Meta:
         model = Trans_instrument_header
-        fields = ( 'instrument_header','id', 'general_description', 'feature_description', 'disclaimer', 'user_instructions',
-        'contact_info', 'i18n_code')
+        #fields = ( 'instrument_header','id', 'general_description', 'feature_description', 'disclaimer', 'user_instructions',
+        #'contact_info', 'i18n_code')
+        fields = ("__all__")
 
     """ Prueba sobre como personalizar query sets
     def get_queryset(self):
@@ -136,7 +137,7 @@ class SurveysByClientSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('__all__')
 
 class ItemSerializer(serializers.HyperlinkedModelSerializer):
-    translations=serializers.StringRelatedField(many=True)
+    #translations=serializers.StringRelatedField(many=True)
     dimension=SimpleItemClassificationSerializer(many=False,read_only=True)
     #category = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
     category = SimpleItemClassificationSerializer(many=False,read_only=True)
@@ -146,16 +147,18 @@ class ItemSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Item
         #fields = ('name', 'description','i18n_code','translations')
-        fields = ('id','response_format','item_order', 'dimension','category','component','translations')
+        fields = ('id','response_format','item_order', 'dimension','category','component')
 
 class ItemResponByParticipantsSerializer(serializers.HyperlinkedModelSerializer):
-    #participant_response_header = ParticipantResponseHeaderSerializer(many=False, read_only=False)
     #participant_response_header_id =serializers.IntegerField(write_only=True)
     item = ItemSerializer(many=False, read_only=True)
     item_id = serializers.IntegerField(write_only=True)
     class Meta:
         model = Items_respon_by_participants
-        fields = ('__all__')
+        #fields = ('__all__')
+        fields = ('id','item','item_id','answer_numeric')
+        #fields = ('id','item','item_id','participant_response_header_id')
+
 
 class ItemClassificationSerializer(serializers.HyperlinkedModelSerializer):
     #itemsBycategory = serializers.StringRelatedField(many=True)
@@ -202,9 +205,7 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
     #survey_by_client_id = serializers.IntegerField(write_only=True)
 
     #responsesList = serializers.StringRelatedField(many=True)
-    responsesList = ItemResponByParticipantsSerializer(many=True,write_only=True)
-
-    print("Serializador de participant response header serializer")
+    responsesList = ItemResponByParticipantsSerializer(many=True)
 
     """
     customized_instrument = serializers.HyperlinkedRelatedField(
@@ -229,15 +230,17 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
 
     class Meta:
         model = Participant_response_header
-        #fields = ('__all__')
-        fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id','responsesList')
-        # fields = ('id','email','comments','position','area','customized_instrument')
+        fields = ('__all__')
+        #fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id','responsesList')
+        #fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id',)
 
     def create(self, validated_data):
         print ("Entre al create del responses del instrument")
         responses_list_data = validated_data.pop('responsesList')
+        print(validated_data)
         participant_response_header = Participant_response_header.objects.create(**validated_data)
-        Items_respon_by_participants.objects.create(participant_response_header=participant_response_header,
-                                                    **responses_list_data)
+        print ("Guarde el participant response")
+        for response in responses_list_data:
+            Items_respon_by_participants.objects.create(participant_response_header=participant_response_header,**response)
         print ("Sali del create")
         return participant_response_header
