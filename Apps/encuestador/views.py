@@ -142,7 +142,7 @@ class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     categoriesId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__category__id').distinct()
-    queryset = ItemClassification.objects.filter(id__in=categoriesId)
+    queryset = ItemClassification.objects.filter(id__in=categoriesId).order_by('-name')
 
 
 class SimpleActiveDimensionsViewSet(viewsets.ModelViewSet):
@@ -152,7 +152,7 @@ class SimpleActiveDimensionsViewSet(viewsets.ModelViewSet):
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     dimensionsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__dimension__id').distinct()
-    queryset = ItemClassification.objects.filter(id__in=dimensionsId)
+    queryset = ItemClassification.objects.filter(id__in=dimensionsId).order_by('-name')
 
 class SimpleActiveComponentsViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleItemClassificationSerializer
@@ -161,7 +161,8 @@ class SimpleActiveComponentsViewSet(viewsets.ModelViewSet):
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     dimensionsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__component__id').distinct()
-    queryset = ItemClassification.objects.filter(id__in=dimensionsId)
+    # El menos en el order by significa que es descendiente
+    queryset = ItemClassification.objects.filter(id__in=dimensionsId).order_by('-name')
 
 # Retorna el Json con los items y sus traducciones agrupados por categoria, el mismo serializar se usa para agrupar por dimension y por componente
 """
