@@ -130,6 +130,7 @@ class ParticipantResponseViewSet (viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
     """
 
+
 class SurveysByClientViewSet (viewsets.ModelViewSet):
     serializer_class = SurveysByClientSerializer
     queryset = Surveys_by_client.objects.all()

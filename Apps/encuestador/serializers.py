@@ -141,7 +141,7 @@ class ItemSerializer(serializers.HyperlinkedModelSerializer):
     dimension=SimpleItemClassificationSerializer(many=False,read_only=True)
     #category = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
     category = SimpleItemClassificationSerializer(many=False,read_only=True)
-    response_format = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    # response_format = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
     component=SimpleItemClassificationSerializer(many=False,read_only=True)
 
     class Meta:
@@ -198,7 +198,7 @@ class InstrumentStructureHistorySerializerOnlyActiveItems(serializers.Hyperlinke
 
 class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer):
     # instrument_header=InstrumentHeaderSerializer(many=False,read_only=False)
-    customized_instrument = CustomizedInstrumentSerializer(many=False, read_only=True)
+    # customized_instrument = CustomizedInstrumentSerializer(many=False, read_only=True)
     #survey_by_client = SurveysByClientSerializer(many=False, read_only=True)
 
     customized_instrument_id = serializers.IntegerField(write_only=True)
@@ -230,9 +230,9 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
 
     class Meta:
         model = Participant_response_header
-        fields = ('__all__')
+        # fields = ('__all__')
         #fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id','responsesList')
-        #fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id',)
+        fields = ('id','email','comments','position','area','is_directive','customized_instrument_id','responsesList', 'is_complete')
 
     def create(self, validated_data):
         print ("Entre al create del responses del instrument")
@@ -242,5 +242,6 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
         print ("Guarde el participant response")
         for response in responses_list_data:
             Items_respon_by_participants.objects.create(participant_response_header=participant_response_header,**response)
-        print ("Sali del create")
+        print ("Guarde las respuestas de los participantes")
+        print (participant_response_header.responsesList)
         return participant_response_header
