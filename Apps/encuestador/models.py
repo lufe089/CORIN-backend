@@ -91,11 +91,6 @@ class Trans_item(models.Model):
     def __str__(self):  # __unicode__ on Python 2
         return self.name
 
-"""Por ahora no sirve para nada, creo que la voy a eliminar"""
-class ClassificationAndItems:
-    itemClassification=models.ForeignKey(ItemClassification, related_name="itemClassification", on_delete=models.CASCADE,default=None)
-    item=models.ForeignKey(Item, related_name="items", on_delete=models.CASCADE,default=None)
-
 class Instrument_header(models.Model):
     version_name = models.CharField(max_length=50)
     is_active = models.BooleanField()

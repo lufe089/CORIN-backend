@@ -149,9 +149,21 @@ class ItemSerializer(serializers.HyperlinkedModelSerializer):
         #fields = ('name', 'description','i18n_code','translations')
         fields = ('id','response_format','item_order', 'dimension','category','component')
 
+""" Retorna solo los ids de los campso asociados para reducir tiempo de carga"""
+class ItemSimpleSerializer(serializers.HyperlinkedModelSerializer):
+    dimension_id = serializers.IntegerField()
+    category_id = serializers.IntegerField()
+    component_id = serializers.IntegerField()
+
+    class Meta:
+        model = Item
+        #fields = ('name', 'description','i18n_code','translations')
+        fields = ('id','dimension_id','category_id','component_id')
+
+
 class ItemResponByParticipantsSerializer(serializers.HyperlinkedModelSerializer):
     #participant_response_header_id =serializers.IntegerField(write_only=True)
-    item = ItemSerializer(many=False, read_only=True)
+    item = ItemSimpleSerializer(many=False, read_only=True)
     item_id = serializers.IntegerField(write_only=True)
     class Meta:
         model = Items_respon_by_participants
@@ -159,6 +171,10 @@ class ItemResponByParticipantsSerializer(serializers.HyperlinkedModelSerializer)
         fields = ('id','item','item_id','answer_numeric')
         #fields = ('id','item','item_id','participant_response_header_id')
 
+class AverageResponsesSerializer(serializers.Serializer):
+    item__dimension = serializers.IntegerField(read_only=True)
+    item__dimension__name = serializers.CharField()
+    average = serializers.FloatField(read_only=True)
 
 class ItemClassificationSerializer(serializers.HyperlinkedModelSerializer):
     #itemsBycategory = serializers.StringRelatedField(many=True)

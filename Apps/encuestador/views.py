@@ -6,6 +6,7 @@ from Apps.encuestador.models import ItemClassification
 from Apps.encuestador.models import Item
 from Apps.encuestador.models import Instrument_header
 from Apps.encuestador.models import Instrument_structure_history
+from Apps.encuestador.models import Items_respon_by_participants
 from Apps.encuestador.models import Customized_instrument
 from Apps.encuestador.models import Trans_instrument_header
 from Apps.encuestador.models import LanguageChoice
@@ -15,6 +16,9 @@ from Apps.encuestador.models import Company, Client,Config_surveys_by_clients
 from Apps.encuestador.models import Response_format
 from Apps.encuestador.models import Surveys_by_client
 from rest_framework import viewsets
+from rest_framework.renderers import JSONRenderer
+from rest_framework.views import APIView
+from rest_framework.response import Response
 import logging
 
 
@@ -28,6 +32,8 @@ from Apps.encuestador.serializers import SimpleItemClassificationSerializer
 from Apps.encuestador.serializers import ItemClassificationSerializer
 from Apps.encuestador.serializers import ParticipantResponseHeaderSerializer
 from Apps.encuestador.serializers import SurveysByClientSerializer
+from Apps.encuestador.serializers import AverageResponsesSerializer
+from django.db.models import Avg,Count
 """
 """
 
@@ -134,6 +140,72 @@ class ParticipantResponseViewSet (viewsets.ModelViewSet):
 class SurveysByClientViewSet (viewsets.ModelViewSet):
     serializer_class = SurveysByClientSerializer
     queryset = Surveys_by_client.objects.all()
+
+class AverageByClassifiers (viewsets.ModelViewSet):
+    serializer_class = AverageResponsesSerializer
+    #queryset= Items_respon_by_participants.objects.values('item__dimension__name, item__dimension').annotate(average=Avg('answer_numeric')).order_by('-average')
+
+    # Traigo las respuestas del cliente -- OJO EL CLIENTE ahorita esta quemado
+    # FIXME
+    responseHeadersByCompany = Participant_response_header.objects.filter(customized_instrument__config_survey__client__id=1).values('id')
+
+    #Dimensions
+    queryset= Items_respon_by_participants.objects.filter(participant_response_header__id__in =responseHeadersByCompany).values("participant_response_header","item__dimension__name", "item__dimension_id").annotate(average=Avg('answer_numeric')).order_by('-average')
+    #Components
+    print(queryset.query)
+    print(queryset)
+
+class AgregateResponsesView(APIView):
+
+    @api_view(['GET'])
+    # @renderer_classes((JSONRenderer,))
+    def averageFilters(request, format=None):
+        """
+        A view that returns the count of active users in JSON.
+        """
+        # FIXME
+        responseHeadersByCompany = Participant_response_header.objects.filter(
+            customized_instrument__config_survey__client__id=1).values('id')
+
+        # Dimensions
+        dimensions_average = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).values("item__dimension__name",
+                                                                                 "item__dimension_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+
+        # Components
+        # Respuestas de la compañía donde el componente no sea null
+        components_average = Items_respon_by_participants.objects.filter(participant_response_header__id__in=responseHeadersByCompany).exclude(item__component= None).values("item__component__name",
+                                                                                 "item__component_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+
+        # Categories
+        categories_average = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).values("item__category__name","item__category_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+
+        categories_average_by_directives= Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__is_directive=1).values("item__category__name","item__category_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True) ).order_by('-average')
+
+
+        # Los comento pq no los use al cambiar por contar con un distinc en el query
+        # count_directives = Participant_response_header.objects.filter(id__in=responseHeadersByCompany).filter(is_directive=1).aggregate(Count('is_directive'))
+        # count_NO_directives = Participant_response_header.objects.filter(id__in=responseHeadersByCompany).filter(is_directive=0).aggregate(Count('is_directive'))
+        # numDirectives= count_directives['is_directive__count']
+        # numNoDirectives = count_NO_directives['is_directive__count']
+
+        categories_average_by_no_directives = Items_respon_by_participants.objects.filter(
+                participant_response_header__id__in=responseHeadersByCompany).filter(
+                participant_response_header__is_directive=0).values("item__category__name", "item__category_id").annotate(
+                average=Avg('answer_numeric'), n=Count('participant_response_header',distinct=True)).order_by('-average')
+
+        # Overall average
+        overall_average = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'))
+
+        print (request)
+        content = {'overall_average':overall_average,'average_by_dimensions':categories_average, "average_by_components": components_average, "average_by_categories":categories_average , "categories_average_by_directives": categories_average_by_directives , "categories_average_by_no_directives": categories_average_by_no_directives }
+        # return Response(content)
+        return Response(content)
+
+        #return Response({})
 
 
 class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
