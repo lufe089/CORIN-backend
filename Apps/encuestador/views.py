@@ -18,6 +18,7 @@ from Apps.encuestador.models import Surveys_by_client
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
+from django.db.models import F
 from rest_framework.response import Response
 import logging
 
@@ -155,7 +156,7 @@ class AverageByClassifiers (viewsets.ModelViewSet):
     print(queryset.query)
     print(queryset)
 
-class AgregateResponsesView(APIView):
+class ResponsesView(APIView):
 
     @api_view(['GET'])
     # @renderer_classes((JSONRenderer,))
@@ -169,20 +170,27 @@ class AgregateResponsesView(APIView):
 
         # Dimensions
         dimensions_average = Items_respon_by_participants.objects.filter(
-            participant_response_header__id__in=responseHeadersByCompany).values("item__dimension__name",
-                                                                                 "item__dimension_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+            participant_response_header__id__in=responseHeadersByCompany).values("item__dimension_id").annotate(name=F('item__dimension__name'), idElement=F('item__dimension_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
 
         # Components
         # Respuestas de la compañía donde el componente no sea null
-        components_average = Items_respon_by_participants.objects.filter(participant_response_header__id__in=responseHeadersByCompany).exclude(item__component= None).values("item__component__name",
-                                                                                 "item__component_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+        components_average = Items_respon_by_participants.objects.filter(participant_response_header__id__in=responseHeadersByCompany).exclude(item__component= None).values(
+                                                                                 "item__component_id").annotate(name=F('item__component__name'), idElement=F('item__component_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
 
         # Categories
+        """ Tra elos campos sin renombrarlos
         categories_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__category__name","item__category_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+            """
+
+        # Usa el atributo f para renombrar el valor de un campo. Esto lo hago para que en la tabla de la vista todos se llamen igual( catogiras, dimensions,components) y puedan dibujar mas facil. Tiene que tener al menos un campo value para que funcione
+        categories_average = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+        print ("Categories average")
+        print(categories_average)
 
         categories_average_by_directives= Items_respon_by_participants.objects.filter(
-            participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__is_directive=1).values("item__category__name","item__category_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True) ).order_by('-average')
+            participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__is_directive=1).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True) ).order_by('-average')
 
 
         # Los comento pq no los use al cambiar por contar con un distinc en el query
@@ -193,19 +201,38 @@ class AgregateResponsesView(APIView):
 
         categories_average_by_no_directives = Items_respon_by_participants.objects.filter(
                 participant_response_header__id__in=responseHeadersByCompany).filter(
-                participant_response_header__is_directive=0).values("item__category__name", "item__category_id").annotate(
+                participant_response_header__is_directive=0).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),
                 average=Avg('answer_numeric'), n=Count('participant_response_header',distinct=True)).order_by('-average')
 
         # Overall average
-        overall_average = Items_respon_by_participants.objects.filter(
-            participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'))
+        overall_average_count = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'), n= Count('participant_response_header',distinct=True))
 
         print (request)
-        content = {'overall_average':overall_average,'average_by_dimensions':categories_average, "average_by_components": components_average, "average_by_categories":categories_average , "categories_average_by_directives": categories_average_by_directives , "categories_average_by_no_directives": categories_average_by_no_directives }
+        content = {'overall_average':overall_average_count['average'], 'n':overall_average_count['n'], "average_by_dimensions":dimensions_average, "average_by_components": components_average, "average_by_categories":categories_average , "categories_average_by_directives": categories_average_by_directives , "categories_average_by_no_directives": categories_average_by_no_directives }
         # return Response(content)
         return Response(content)
 
-        #return Response({})
+    """ Lo comento pq al fin no sirve
+    @api_view(['GET'])
+    # @renderer_classes((JSONRenderer,))
+    def getItemsByCategorySpanish(request, format=None):
+        # Traigo el instrumento activo
+        active_instrument = consultActiveInstrument()
+        # Traigo el id de los items asociadas al instrumento activo y que esten activos
+        activeItemsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
+            is_active=True).values('new_item__id')
+        queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name)
+
+        # Traigo el instrumento activo
+        active_instrument = consultActiveInstrument()
+        # Traigo el id de los items asociadas al instrumento activo y que esten activos
+        categoriesId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
+            is_active=True).values('new_item__category__id').distinct()
+        queryset = ItemClassification.objects.filter(id__in=categoriesId).order_by('-name')
+
+    """
+
 
 
 class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):

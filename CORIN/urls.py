@@ -58,7 +58,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/', include((router.urls, 'encuestador'))),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^averageFilters/$', views.AgregateResponsesView.averageFilters),
+    url(r'^averageFilters/$', views.ResponsesView.averageFilters),
 ]
 
 
