@@ -138,13 +138,15 @@ class Company(models.Model):
 
 class Client(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    client_logo = models.CharField(max_length=100)
+    client_logo = models.CharField(max_length=100,default=None, null=True, blank=True)
     contact = models.CharField(max_length=50)
     client_company_name = models.CharField(max_length=100)
     constitution_year = models.IntegerField()
     number_employees = models.IntegerField()
     is_corporate_group = models.BooleanField()
     is_family_company = models.BooleanField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Config_surveys_by_clients(models.Model):

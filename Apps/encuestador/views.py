@@ -70,7 +70,7 @@ class CompanyViewSet (viewsets.ModelViewSet):
 
 class ClientViewSet (viewsets.ModelViewSet):
     serializer_class = ClientSerializer
-    queryset = Client.objects.all()
+    queryset = Client.objects.all().order_by('-created_at')
 
 class ConfigSurveysByClientsViewSet (viewsets.ModelViewSet):
     serializer_class = ConfigSurveysByClientsSerializer
@@ -113,8 +113,8 @@ class OnlyActiveItems (viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     # Traigo el instrumento activo
     active_instrument =  consultActiveInstrument()
-    print ("Imprimo lo que tiene el instrumento")
-    print (active_instrument)
+    # print ("Imprimo lo que tiene el instrumento")
+    # print (active_instrument)
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     activeItems = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(is_active=True).values('new_item__id')
     queryset = Item.objects.filter(id__in=activeItems)
@@ -152,9 +152,7 @@ class AverageByClassifiers (viewsets.ModelViewSet):
 
     #Dimensions
     queryset= Items_respon_by_participants.objects.filter(participant_response_header__id__in =responseHeadersByCompany).values("participant_response_header","item__dimension__name", "item__dimension_id").annotate(average=Avg('answer_numeric')).order_by('-average')
-    #Components
-    print(queryset.query)
-    print(queryset)
+
 
 class ResponsesView(APIView):
 

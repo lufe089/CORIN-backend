@@ -26,10 +26,11 @@ class CompanySerializer(serializers.HyperlinkedModelSerializer):
 
 class ClientSerializer(serializers.HyperlinkedModelSerializer):
     company = CompanySerializer(many=False, read_only=True)
+    company_id = serializers.IntegerField()
     class Meta:
         model = Client
         #fields = ('max_surveys','used_surveys','contact')
-        fields =('__all__')
+        fields =('id','company','company_id','client_company_name','constitution_year','number_employees','is_corporate_group','is_family_company','created_at','updated_at')
 
 class ResponseFormatSerializer(serializers.HyperlinkedModelSerializer):
     parametric_table=serializers.PrimaryKeyRelatedField(many=False, read_only=True)
