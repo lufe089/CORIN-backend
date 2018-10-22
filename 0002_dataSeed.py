@@ -6,6 +6,7 @@ from Apps.encuestador.models import ClassificationChoice
 from Apps.encuestador.models import LanguageChoice
 from Apps.encuestador.models import ResponseFormatType
 from Apps.encuestador.models import ItemClassification
+import datetime
 
 
 def insert_data(apps, schema_editor):
@@ -795,7 +796,7 @@ def insert_data(apps, schema_editor):
     companyTest.save()
 
     # Se crea un cliente de prueba
-    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia",client_company_name="Empresa 1", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False)
+    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia",client_company_name="Empresa 1", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False, created_at=datetime.datetime.now())
     clientTest.save()
 
 
