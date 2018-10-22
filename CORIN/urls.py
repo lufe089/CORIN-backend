@@ -34,6 +34,7 @@ router.register(r'activeItems', views.OnlyActiveItems)
 router.register(r'instructionsSpanish', views.InstructionsSpanishViewSet)
 router.register(r'customizedInstrument', views.CustomizedInstrumentViewSet)
 router.register(r'activeItemsSpanish', views.SpanishActiveItemsViewSet)
+router.register(r'average', views.AverageByClassifiers)
 router.register(r'participantsResponse', views.ParticipantResponseViewSet)
 router.register(r'surveysByClient', views.SurveysByClientViewSet)
 
@@ -57,6 +58,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/', include((router.urls, 'encuestador'))),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^averageFilters/$', views.ResponsesView.averageFilters),
 ]
 
 

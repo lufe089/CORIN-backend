@@ -6,6 +6,7 @@ from Apps.encuestador.models import ItemClassification
 from Apps.encuestador.models import Item
 from Apps.encuestador.models import Instrument_header
 from Apps.encuestador.models import Instrument_structure_history
+from Apps.encuestador.models import Items_respon_by_participants
 from Apps.encuestador.models import Customized_instrument
 from Apps.encuestador.models import Trans_instrument_header
 from Apps.encuestador.models import LanguageChoice
@@ -15,6 +16,10 @@ from Apps.encuestador.models import Company, Client,Config_surveys_by_clients
 from Apps.encuestador.models import Response_format
 from Apps.encuestador.models import Surveys_by_client
 from rest_framework import viewsets
+from rest_framework.renderers import JSONRenderer
+from rest_framework.views import APIView
+from django.db.models import F
+from rest_framework.response import Response
 import logging
 
 
@@ -28,6 +33,8 @@ from Apps.encuestador.serializers import SimpleItemClassificationSerializer
 from Apps.encuestador.serializers import ItemClassificationSerializer
 from Apps.encuestador.serializers import ParticipantResponseHeaderSerializer
 from Apps.encuestador.serializers import SurveysByClientSerializer
+from Apps.encuestador.serializers import AverageResponsesSerializer
+from django.db.models import Avg,Count
 """
 """
 
@@ -63,7 +70,7 @@ class CompanyViewSet (viewsets.ModelViewSet):
 
 class ClientViewSet (viewsets.ModelViewSet):
     serializer_class = ClientSerializer
-    queryset = Client.objects.all()
+    queryset = Client.objects.all().order_by('-created_at')
 
 class ConfigSurveysByClientsViewSet (viewsets.ModelViewSet):
     serializer_class = ConfigSurveysByClientsSerializer
@@ -106,8 +113,8 @@ class OnlyActiveItems (viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     # Traigo el instrumento activo
     active_instrument =  consultActiveInstrument()
-    print ("Imprimo lo que tiene el instrumento")
-    print (active_instrument)
+    # print ("Imprimo lo que tiene el instrumento")
+    # print (active_instrument)
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     activeItems = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(is_active=True).values('new_item__id')
     queryset = Item.objects.filter(id__in=activeItems)
@@ -130,9 +137,100 @@ class ParticipantResponseViewSet (viewsets.ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
     """
 
+
 class SurveysByClientViewSet (viewsets.ModelViewSet):
     serializer_class = SurveysByClientSerializer
     queryset = Surveys_by_client.objects.all()
+
+class AverageByClassifiers (viewsets.ModelViewSet):
+    serializer_class = AverageResponsesSerializer
+    #queryset= Items_respon_by_participants.objects.values('item__dimension__name, item__dimension').annotate(average=Avg('answer_numeric')).order_by('-average')
+
+    # Traigo las respuestas del cliente -- OJO EL CLIENTE ahorita esta quemado
+    # FIXME
+    responseHeadersByCompany = Participant_response_header.objects.filter(customized_instrument__config_survey__client__id=1).values('id')
+
+    #Dimensions
+    queryset= Items_respon_by_participants.objects.filter(participant_response_header__id__in =responseHeadersByCompany).values("participant_response_header","item__dimension__name", "item__dimension_id").annotate(average=Avg('answer_numeric')).order_by('-average')
+
+
+class ResponsesView(APIView):
+
+    @api_view(['GET'])
+    # @renderer_classes((JSONRenderer,))
+    def averageFilters(request, format=None):
+        """
+        A view that returns the count of active users in JSON.
+        """
+        # FIXME
+        responseHeadersByCompany = Participant_response_header.objects.filter(
+            customized_instrument__config_survey__client__id=1).values('id')
+
+        # Dimensions
+        dimensions_average = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).values("item__dimension_id").annotate(name=F('item__dimension__name'), idElement=F('item__dimension_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+
+        # Components
+        # Respuestas de la compañía donde el componente no sea null
+        components_average = Items_respon_by_participants.objects.filter(participant_response_header__id__in=responseHeadersByCompany).exclude(item__component= None).values(
+                                                                                 "item__component_id").annotate(name=F('item__component__name'), idElement=F('item__component_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+
+        # Categories
+        """ Tra elos campos sin renombrarlos
+        categories_average = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).values("item__category__name","item__category_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+            """
+
+        # Usa el atributo f para renombrar el valor de un campo. Esto lo hago para que en la tabla de la vista todos se llamen igual( catogiras, dimensions,components) y puedan dibujar mas facil. Tiene que tener al menos un campo value para que funcione
+        categories_average = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+        print ("Categories average")
+        print(categories_average)
+
+        categories_average_by_directives= Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__is_directive=1).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True) ).order_by('-average')
+
+
+        # Los comento pq no los use al cambiar por contar con un distinc en el query
+        # count_directives = Participant_response_header.objects.filter(id__in=responseHeadersByCompany).filter(is_directive=1).aggregate(Count('is_directive'))
+        # count_NO_directives = Participant_response_header.objects.filter(id__in=responseHeadersByCompany).filter(is_directive=0).aggregate(Count('is_directive'))
+        # numDirectives= count_directives['is_directive__count']
+        # numNoDirectives = count_NO_directives['is_directive__count']
+
+        categories_average_by_no_directives = Items_respon_by_participants.objects.filter(
+                participant_response_header__id__in=responseHeadersByCompany).filter(
+                participant_response_header__is_directive=0).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),
+                average=Avg('answer_numeric'), n=Count('participant_response_header',distinct=True)).order_by('-average')
+
+        # Overall average
+        overall_average_count = Items_respon_by_participants.objects.filter(
+            participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'), n= Count('participant_response_header',distinct=True))
+
+        print (request)
+        content = {'overall_average':overall_average_count['average'], 'n':overall_average_count['n'], "average_by_dimensions":dimensions_average, "average_by_components": components_average, "average_by_categories":categories_average , "categories_average_by_directives": categories_average_by_directives , "categories_average_by_no_directives": categories_average_by_no_directives }
+        # return Response(content)
+        return Response(content)
+
+    """ Lo comento pq al fin no sirve
+    @api_view(['GET'])
+    # @renderer_classes((JSONRenderer,))
+    def getItemsByCategorySpanish(request, format=None):
+        # Traigo el instrumento activo
+        active_instrument = consultActiveInstrument()
+        # Traigo el id de los items asociadas al instrumento activo y que esten activos
+        activeItemsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
+            is_active=True).values('new_item__id')
+        queryset = Trans_item.objects.filter(item__in=activeItemsId).filter(i18n_code=LanguageChoice.ES.name)
+
+        # Traigo el instrumento activo
+        active_instrument = consultActiveInstrument()
+        # Traigo el id de los items asociadas al instrumento activo y que esten activos
+        categoriesId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
+            is_active=True).values('new_item__category__id').distinct()
+        queryset = ItemClassification.objects.filter(id__in=categoriesId).order_by('-name')
+
+    """
+
 
 
 class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
@@ -142,7 +240,7 @@ class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     categoriesId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__category__id').distinct()
-    queryset = ItemClassification.objects.filter(id__in=categoriesId)
+    queryset = ItemClassification.objects.filter(id__in=categoriesId).order_by('-name')
 
 
 class SimpleActiveDimensionsViewSet(viewsets.ModelViewSet):
@@ -152,7 +250,7 @@ class SimpleActiveDimensionsViewSet(viewsets.ModelViewSet):
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     dimensionsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__dimension__id').distinct()
-    queryset = ItemClassification.objects.filter(id__in=dimensionsId)
+    queryset = ItemClassification.objects.filter(id__in=dimensionsId).order_by('-name')
 
 class SimpleActiveComponentsViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleItemClassificationSerializer
@@ -161,7 +259,8 @@ class SimpleActiveComponentsViewSet(viewsets.ModelViewSet):
     # Traigo el id de los items asociadas al instrumento activo y que esten activos
     dimensionsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__component__id').distinct()
-    queryset = ItemClassification.objects.filter(id__in=dimensionsId)
+    # El menos en el order by significa que es descendiente
+    queryset = ItemClassification.objects.filter(id__in=dimensionsId).order_by('-name')
 
 # Retorna el Json con los items y sus traducciones agrupados por categoria, el mismo serializar se usa para agrupar por dimension y por componente
 """

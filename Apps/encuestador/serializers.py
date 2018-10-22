@@ -26,10 +26,11 @@ class CompanySerializer(serializers.HyperlinkedModelSerializer):
 
 class ClientSerializer(serializers.HyperlinkedModelSerializer):
     company = CompanySerializer(many=False, read_only=True)
+    company_id = serializers.IntegerField()
     class Meta:
         model = Client
         #fields = ('max_surveys','used_surveys','contact')
-        fields =('__all__')
+        fields =('id','company','company_id','client_company_name','constitution_year','number_employees','is_corporate_group','is_family_company','created_at','updated_at')
 
 class ResponseFormatSerializer(serializers.HyperlinkedModelSerializer):
     parametric_table=serializers.PrimaryKeyRelatedField(many=False, read_only=True)
@@ -141,7 +142,7 @@ class ItemSerializer(serializers.HyperlinkedModelSerializer):
     dimension=SimpleItemClassificationSerializer(many=False,read_only=True)
     #category = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
     category = SimpleItemClassificationSerializer(many=False,read_only=True)
-    response_format = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    # response_format = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
     component=SimpleItemClassificationSerializer(many=False,read_only=True)
 
     class Meta:
@@ -149,9 +150,21 @@ class ItemSerializer(serializers.HyperlinkedModelSerializer):
         #fields = ('name', 'description','i18n_code','translations')
         fields = ('id','response_format','item_order', 'dimension','category','component')
 
+""" Retorna solo los ids de los campso asociados para reducir tiempo de carga"""
+class ItemSimpleSerializer(serializers.HyperlinkedModelSerializer):
+    dimension_id = serializers.IntegerField()
+    category_id = serializers.IntegerField()
+    component_id = serializers.IntegerField()
+
+    class Meta:
+        model = Item
+        #fields = ('name', 'description','i18n_code','translations')
+        fields = ('id','dimension_id','category_id','component_id')
+
+
 class ItemResponByParticipantsSerializer(serializers.HyperlinkedModelSerializer):
     #participant_response_header_id =serializers.IntegerField(write_only=True)
-    item = ItemSerializer(many=False, read_only=True)
+    item = ItemSimpleSerializer(many=False, read_only=True)
     item_id = serializers.IntegerField(write_only=True)
     class Meta:
         model = Items_respon_by_participants
@@ -159,6 +172,10 @@ class ItemResponByParticipantsSerializer(serializers.HyperlinkedModelSerializer)
         fields = ('id','item','item_id','answer_numeric')
         #fields = ('id','item','item_id','participant_response_header_id')
 
+class AverageResponsesSerializer(serializers.Serializer):
+    item__dimension = serializers.IntegerField(read_only=True)
+    item__dimension__name = serializers.CharField()
+    average = serializers.FloatField(read_only=True)
 
 class ItemClassificationSerializer(serializers.HyperlinkedModelSerializer):
     #itemsBycategory = serializers.StringRelatedField(many=True)
@@ -198,7 +215,7 @@ class InstrumentStructureHistorySerializerOnlyActiveItems(serializers.Hyperlinke
 
 class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer):
     # instrument_header=InstrumentHeaderSerializer(many=False,read_only=False)
-    customized_instrument = CustomizedInstrumentSerializer(many=False, read_only=True)
+    # customized_instrument = CustomizedInstrumentSerializer(many=False, read_only=True)
     #survey_by_client = SurveysByClientSerializer(many=False, read_only=True)
 
     customized_instrument_id = serializers.IntegerField(write_only=True)
@@ -230,9 +247,9 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
 
     class Meta:
         model = Participant_response_header
-        fields = ('__all__')
+        # fields = ('__all__')
         #fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id','responsesList')
-        #fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id',)
+        fields = ('id','email','comments','position','area','is_directive','customized_instrument_id','responsesList', 'is_complete')
 
     def create(self, validated_data):
         print ("Entre al create del responses del instrument")
@@ -242,5 +259,6 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
         print ("Guarde el participant response")
         for response in responses_list_data:
             Items_respon_by_participants.objects.create(participant_response_header=participant_response_header,**response)
-        print ("Sali del create")
+        print ("Guarde las respuestas de los participantes")
+        print (participant_response_header.responsesList)
         return participant_response_header
