@@ -70,7 +70,7 @@ class CompanyViewSet (viewsets.ModelViewSet):
 
 class ClientViewSet (viewsets.ModelViewSet):
     serializer_class = ClientSerializer
-    queryset = Client.objects.all().order_by('-created_at')
+    queryset = Client.objects.all()
     # queryset = Client.objects.all().order_by('-created_at')
 
 class ConfigSurveysByClientsViewSet (viewsets.ModelViewSet):
