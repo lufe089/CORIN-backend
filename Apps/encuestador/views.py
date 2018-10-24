@@ -218,7 +218,7 @@ class ResponsesView(APIView):
 
         # max_survey=Config_surveys_by_clients.objects.filter(client=OuterRef('pk'))),
         clients_with_configuration= Config_surveys_by_clients.objects.all().values('client__id', 'client__client_company_name', 'client__company_id','client__constitution_year', 'client__number_employees',
-                  'client__is_corporate_group', 'client__is_family_company',"max_surveys","used_surveys")
+                  'client__is_corporate_group', 'client__is_family_company',"max_surveys","used_surveys").annotate(config_id=F('id'))
         #clients_without_configuration= Client.objects.all().annotate(max_surveys=Value('0'),used_surveys=Value('0'))
 
         # Se consultan los id de los que si tienen configuracion para excluirlos de la consulta directa de la tabla de clientes y así hacer que la union no tenga repetidos
@@ -226,7 +226,7 @@ class ResponsesView(APIView):
 
         # Se hace la resta en los campos que se anotan solo como truco para que los valores sean zero pues no encontre como inicializarlos realmente en cero
         clients_without_configuration= Client.objects.exclude(id__in=clients_with_configuration_ids).values('id', 'client_company_name', 'company_id','constitution_year', 'number_employees',
-                  'is_corporate_group', 'is_family_company').annotate(max_surveys=Count('id')-Count('id'),used_surveys=Count('id')-Count('id'))
+                  'is_corporate_group', 'is_family_company').annotate(max_surveys=Count('id')-Count('id'),used_surveys=Count('id')-Count('id'),config_id=Count('id')-Count('id')).order_by('-updated_at')
 
         #FIXME - Tratar de agregar los campos que faltan manualmente antes de retornar los datos
         all_clients= clients_without_configuration.union(clients_with_configuration)

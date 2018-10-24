@@ -26,11 +26,12 @@ class CompanySerializer(serializers.HyperlinkedModelSerializer):
 
 class ClientSerializer(serializers.HyperlinkedModelSerializer):
     company = CompanySerializer(many=False, read_only=True)
-    company_id = serializers.IntegerField()
+    company_id = serializers.IntegerField(write_only=True)
     class Meta:
         model = Client
         #fields = ('max_surveys','used_surveys','contact')
         fields =('id','company','company_id','client_company_name','constitution_year','number_employees','is_corporate_group','is_family_company')
+
 
 class ResponseFormatSerializer(serializers.HyperlinkedModelSerializer):
     parametric_table=serializers.PrimaryKeyRelatedField(many=False, read_only=True)
@@ -109,12 +110,12 @@ class TranslatedItemSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','name','item')
 
 class ConfigSurveysByClientsSerializer(serializers.HyperlinkedModelSerializer):
-    client_id = serializers.IntegerField()
+    client_id = serializers.IntegerField(write_only=True)
     instrument_header_id = serializers.IntegerField()
-
+    client=ClientSerializer(read_only=True)
     class Meta:
         model = Config_surveys_by_clients
-        fields = ('id','client_id',"instrument_header_id","max_surveys","used_surveys","survey_conf_desc")
+        fields = ('id','client_id','client',"instrument_header_id","max_surveys","used_surveys","survey_conf_desc")
 
 
 class CustomizedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
