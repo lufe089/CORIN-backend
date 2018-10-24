@@ -18,7 +18,7 @@ from Apps.encuestador.models import Surveys_by_client
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
-from django.db.models import F
+from django.db.models import F,Value
 from rest_framework.response import Response
 import logging
 
@@ -212,7 +212,29 @@ class ResponsesView(APIView):
         # return Response(content)
         return Response(content)
 
-    """ Lo comento pq al fin no sirve
+    @api_view(['GET'])
+    def getClientAndConfiguration(request, format=None):
+        """ Trae informacion del cliente y las configuraciones relacionadas con el cliente"""
+
+        # max_survey=Config_surveys_by_clients.objects.filter(client=OuterRef('pk'))),
+        clients_with_configuration= Config_surveys_by_clients.objects.all().values('client__id', 'client__client_company_name', 'client__company_id','client__constitution_year', 'client__number_employees',
+                  'client__is_corporate_group', 'client__is_family_company',"max_surveys","used_surveys")
+        #clients_without_configuration= Client.objects.all().annotate(max_surveys=Value('0'),used_surveys=Value('0'))
+
+        # Se consultan los id de los que si tienen configuracion para excluirlos de la consulta directa de la tabla de clientes y así hacer que la union no tenga repetidos
+        clients_with_configuration_ids = Config_surveys_by_clients.objects.all().values('client__id')
+
+        # Se hace la resta en los campos que se anotan solo como truco para que los valores sean zero pues no encontre como inicializarlos realmente en cero
+        clients_without_configuration= Client.objects.exclude(id__in=clients_with_configuration_ids).values('id', 'client_company_name', 'company_id','constitution_year', 'number_employees',
+                  'is_corporate_group', 'is_family_company').annotate(max_surveys=Count('id')-Count('id'),used_surveys=Count('id')-Count('id'))
+
+        #FIXME - Tratar de agregar los campos que faltan manualmente antes de retornar los datos
+        all_clients= clients_without_configuration.union(clients_with_configuration)
+        return Response(all_clients)
+        # return Response ()
+
+
+    """ Lo comento pq al fin no sirve0
     @api_view(['GET'])
     # @renderer_classes((JSONRenderer,))
     def getItemsByCategorySpanish(request, format=None):

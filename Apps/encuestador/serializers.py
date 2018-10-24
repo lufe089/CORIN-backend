@@ -109,11 +109,12 @@ class TranslatedItemSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','name','item')
 
 class ConfigSurveysByClientsSerializer(serializers.HyperlinkedModelSerializer):
-    client = ClientSerializer(many=False,read_only=False)
-    instrument_header = InstrumentHeaderSerializer(many=False, read_only=False)
+    client_id = serializers.IntegerField()
+    instrument_header_id = serializers.IntegerField()
+
     class Meta:
         model = Config_surveys_by_clients
-        fields = ('__all__')
+        fields = ('id','client_id',"instrument_header_id","max_surveys","used_surveys","survey_conf_desc")
 
 
 class CustomizedInstrumentSerializer(serializers.HyperlinkedModelSerializer):

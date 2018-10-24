@@ -6,6 +6,7 @@ from Apps.encuestador.models import ClassificationChoice
 from Apps.encuestador.models import LanguageChoice
 from Apps.encuestador.models import ResponseFormatType
 from Apps.encuestador.models import ItemClassification
+import datetime
 
 
 def insert_data(apps, schema_editor):
@@ -706,7 +707,7 @@ def insert_data(apps, schema_editor):
 
     ##### Instrument headers and basic structure
     instrument_header = Instrument_header(version_name="1.0.a1",is_active=True)
-    user_instructions= "<ul> <li>Por favor, conteste <span style='text-decoration: underline;'><strong>todas</strong> </span>las preguntas.</li><li>No existen respuestas correctas, s&oacute;lo queremos conocer <span style='text-decoration: underline;'><strong>su opini&oacute;</strong><strong>n</strong></span> sobre las cuestiones planteadas.</li><li>Si de alguna de las preguntas no est&aacute; totalmente seguro de la respuesta, no importa, nos interesa su estimaci&oacute;n.</li><li>La mayor&iacute;a de las preguntas consiste en responder entre 1 (no se est&aacute; de acuerdo con la afirmaci&oacute;n) a 9 (se est&aacute; totalmente de acuerdo con la afirmaci&oacute;n). El resto de valores grad&uacute;an estos dos extremos. Se&ntilde;ale el valor m&aacute;s apropiado en cada caso.</li></ul>"
+    user_instructions= "<ul> <li>Por favor, conteste <span style='text-decoration: underline;'><strong>todas</strong> </span>las preguntas.</li><li>No existen respuestas correctas, s&oacute;lo queremos conocer <span style='text-decoration: underline;'><strong>su opini&oacute;</strong><strong>n</strong></span> sobre las cuestiones planteadas.</li><li>Si de alguna de las preguntas no est&aacute; totalmente seguro de la respuesta, no importa, nos interesa su estimaci&oacute;n.</li><li>La mayor&iacute;a de las preguntas consiste en responder entre 1 (no se est&aacute; de acuerdo con la afirmaci&oacute;n) a 5 (se est&aacute; totalmente de acuerdo con la afirmaci&oacute;n). El resto de valores grad&uacute;an estos dos extremos. Se&ntilde;ale el valor m&aacute;s apropiado en cada caso.</li></ul>"
     contact="Si tiene alguna duda, no dude en contactar con nosotros (jcnaranjov@unal.edu.co; teléfono: <strong>+57 6 8879300 ext. 50415 </strong>)"
     thanks = "Gracias por participar"
     instrument_header.save()
@@ -795,12 +796,12 @@ def insert_data(apps, schema_editor):
     companyTest.save()
 
     # Se crea un cliente de prueba
-    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia",client_company_name="Empresa 1", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False)
+    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia",client_company_name="Empresa 1", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False, created_at=datetime.datetime.now())
     clientTest.save()
 
 
     # Se configura un survey personalizado
-    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, resulting_URL="",max_surveys=5,used_surveys=0)
+    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, max_surveys=5,used_surveys=0)
     config_survey.save()
 
     # Se crea un survey personalizado para el cliente

@@ -152,10 +152,11 @@ class Client(models.Model):
 class Config_surveys_by_clients(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     instrument_header = models.ForeignKey(Instrument_header, on_delete=models.CASCADE)
-    resulting_URL = models.URLField(default=None, null=True, blank=True)
+    # resulting_URL = models.URLField(default=None, null=True, blank=True)
     max_surveys= models.IntegerField(default=None, null=True, blank=True)
     used_surveys=  models.IntegerField(default=0)
-    JSON_instrument_file = models.BinaryField(default=None, null=True, blank=True)
+    #JSON_instrument_file = models.BinaryField(default=None, null=True, blank=True)
+    survey_conf_desc = models.TextField(default=None, null=True, blank=True)
 
 class Customized_instrument(models.Model):
     config_survey= models.ForeignKey(Config_surveys_by_clients, on_delete=models.CASCADE)

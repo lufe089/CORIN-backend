@@ -801,7 +801,7 @@ def insert_data(apps, schema_editor):
 
 
     # Se configura un survey personalizado
-    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, resulting_URL="",max_surveys=5,used_surveys=0)
+    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, max_surveys=5,used_surveys=0)
     config_survey.save()
 
     # Se crea un survey personalizado para el cliente
