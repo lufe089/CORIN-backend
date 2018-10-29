@@ -30,7 +30,7 @@ from Apps.encuestador.serializers import TranslatedInstrumentSerializer
 from Apps.encuestador.serializers import TranslatedItemSerializer
 from Apps.encuestador.serializers import ItemSerializer
 from Apps.encuestador.serializers import SimpleItemClassificationSerializer
-from Apps.encuestador.serializers import ItemClassificationSerializer
+from Apps.encuestador.serializers import CustomizedInstrumentSerializer
 from Apps.encuestador.serializers import ParticipantResponseHeaderSerializer
 from Apps.encuestador.serializers import SurveysByClientSerializer
 from Apps.encuestador.serializers import AverageResponsesSerializer
@@ -60,7 +60,7 @@ def consultActiveInstrument():
         return None
 
 class CustomizedInstrumentViewSet (viewsets.ModelViewSet):
-    serializer_class = Customized_instrument
+    serializer_class = CustomizedInstrumentSerializer
     queryset = Customized_instrument.objects.all()
 
 
@@ -232,6 +232,51 @@ class ResponsesView(APIView):
         all_clients= clients_without_configuration.union(clients_with_configuration)
         return Response(all_clients)
         # return Response ()
+
+    @api_view(['GET'])
+    def getCustomizedInstrument(request):
+        """
+        Busca cual es para configuracion activa para ese cliente y luego retorna un objeto de Intrumento personalizado
+        que tiene prediligenciados los mismos campos que estan por defecto definidos en el instrumento que este activo.
+        Con esa información el cliente puede personalizar la información y luego guardar la información en la base de datos.
+        :param idClient:
+        :return:
+        """
+        try:
+            idClient = request.GET['idClient']
+            # Encuentra el cliente asociado a esa configuracion
+            config_surveys_by_client = Config_surveys_by_clients.objects.get(client_id=idClient)
+            print(config_surveys_by_client)
+            customized_instrument_to_client =  Customized_instrument()
+            # Busca si hay una personalización para el cliente
+            try:
+                customized_instrument_to_client= Customized_instrument.objects.get(config_survey=config_surveys_by_client)
+                # Si existe se retorna directamente
+                serializer= CustomizedInstrumentSerializer(customized_instrument_to_client,context={'request': request})
+                return Response(serializer.data)
+            except Customized_instrument.DoesNotExist:
+                # Se consultan los textos asociados al instrument header
+                try:
+                    # Fixme por ahora se hace que el idioma que se consulte sea directamente español
+                    trans_instrument_header=Trans_instrument_header.objects.get(instrument_header=config_surveys_by_client.instrument_header, i18n_code="ES")
+                    # Se le asocia a este objeto la configuracion del survey
+                    customized_instrument_to_client.config_survey=config_surveys_by_client
+                    customized_instrument_to_client.user_instructions= trans_instrument_header.user_instructions
+                    customized_instrument_to_client.contact_info  = trans_instrument_header.contact_info
+                    customized_instrument_to_client.thanks = trans_instrument_header.thanks
+                    response={'config_survey_id': customized_instrument_to_client.config_survey.id,
+                     'custom_user_instructions': customized_instrument_to_client.user_instructions,
+                     'custom_contact_info': customized_instrument_to_client.contact_info,
+                     'custom_thanks': customized_instrument_to_client.thanks, 'prefix':'C'+idClient}
+                    print(response)
+                    return Response(response,status = status.HTTP_200_OK)
+                   # return Response( CustomizedInstrumentSerializer(customized_instrument_to_client,context={'request': request}).data,status = status.HTTP_200_OK)
+                except Trans_instrument_header.DoesNotExist:
+                    print("Error no se encontro una traduccion para el instrumento que se consulta")
+        except Config_surveys_by_clients.DoesNotExist:
+            print("INFO: No se encontró configuración para el cliente enviado")
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 
     """ Lo comento pq al fin no sirve0

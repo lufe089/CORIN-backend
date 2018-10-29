@@ -157,12 +157,15 @@ class Config_surveys_by_clients(models.Model):
     used_surveys=  models.IntegerField(default=0)
     #JSON_instrument_file = models.BinaryField(default=None, null=True, blank=True)
     survey_conf_desc = models.TextField(default=None, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 class Customized_instrument(models.Model):
     config_survey= models.ForeignKey(Config_surveys_by_clients, on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    num_completed_responses = models.IntegerField(default=0)
-    num_partial_responses = models.IntegerField(default=0)
+    # Se quitan campos que ya estaban en config_survey
+    # client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    # num_completed_responses = models.IntegerField(default=0)
+    # num_partial_responses = models.IntegerField(default=0)
 
     # None of these fields are mandatory
     custom_general_description = models.TextField(default=None, null=True, blank=True)
@@ -171,11 +174,13 @@ class Customized_instrument(models.Model):
     custom_user_instructions = models.TextField(default=None, null=True, blank=True)
     custom_contact_info=models.TextField(default=None, null=True, blank=True)
     custom_thanks=models.TextField(default=None, null=True, blank=True)
+    access_code = models.CharField(max_length=50,default=None)
+    prefix= models.CharField(max_length=6,default=None)
 
 class Surveys_by_client(models.Model):
     config_survey= models.ForeignKey(Config_surveys_by_clients, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    # company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    # client = models.ForeignKey(Client, on_delete=models.CASCADE)
     acces_code = models.CharField(max_length=50)
     completed = models.BooleanField(default=False)
     #participant_response_header= models.ForeignKey(Participant_response_header, on_delete=models.CASCADE, default=None, null=True, blank=True)

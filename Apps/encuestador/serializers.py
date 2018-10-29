@@ -125,16 +125,15 @@ class CustomizedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
         read_only=True,
         view_name='config_surveys_by_clients-detail'
     ) """
-    config_survey= ConfigSurveysByClientsSerializer (many=False,read_only=False)
-    #client = ClientSerializer(many=False,read_only=False)
-
+    config_survey = ConfigSurveysByClientsSerializer(many=False, read_only=True)
+    config_survey_id = serializers.IntegerField()
     class Meta:
         model = Customized_instrument
-        fields = ('__all__')
-        # fields = ('custom_general_description',)
+        fields = ('id','config_survey','config_survey_id','custom_user_instructions','custom_contact_info','custom_thanks','prefix','access_code')
 
 class SurveysByClientSerializer(serializers.HyperlinkedModelSerializer):
     config_survey = ConfigSurveysByClientsSerializer(many=False, read_only=False)
+    config_survey_id = serializers.IntegerField()
     class Meta:
         model = Surveys_by_client
         fields = ('__all__')
