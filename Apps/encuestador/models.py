@@ -138,7 +138,7 @@ class Company(models.Model):
 
 class Client(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    client_logo = models.CharField(max_length=100,default=None, null=True, blank=True)
+    client_logo = models.CharField(max_length=100, default=None, null=True, blank=True)
     contact = models.CharField(max_length=50)
     client_company_name = models.CharField(max_length=100)
     constitution_year = models.IntegerField()
@@ -217,3 +217,13 @@ class Roles_by_user(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=50)
+
+class Item_classification_structure (models.Model):
+    dimension = models.ForeignKey(ItemClassification, related_name="itemsClass_Dimension", on_delete=models.CASCADE,
+                                  default=None)
+    category = models.ForeignKey(ItemClassification, related_name="itemsClass_Category", on_delete=models.CASCADE,
+                                 default=None)
+    component = models.ForeignKey(ItemClassification, related_name="itemsClass_Component", on_delete=models.CASCADE,
+                                  default=None, null=True, blank=True)
+
+

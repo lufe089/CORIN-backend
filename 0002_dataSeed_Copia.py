@@ -707,9 +707,9 @@ def insert_data(apps, schema_editor):
 
     ##### Instrument headers and basic structure
     instrument_header = Instrument_header(version_name="1.0.a1",is_active=True)
-    user_instructions= "<ul><li><!--block-->Por favor, conteste <strong>todas&nbsp;</strong>las preguntas.</li><li><!--block-->No existen respuestas correctas, sólo queremos conocer <strong>su opinión</strong> sobre las cuestiones planteadas.</li><li><!--block-->Si de alguna de las preguntas no está totalmente seguro de la respuesta, no importa, nos interesa su estimación.</li><li><!--block-->La mayoría de las preguntas consiste en responder entre 1 (no se está de acuerdo con la afirmación) a 9 (se está totalmente de acuerdo con la afirmación). El resto de valores gradúan estos dos extremos. Señale el valor más apropiado en cada caso.</li></ul>"
+    user_instructions= "<ul> <li>Por favor, conteste <span style='text-decoration: underline;'><strong>todas</strong> </span>las preguntas.</li><li>No existen respuestas correctas, s&oacute;lo queremos conocer <span style='text-decoration: underline;'><strong>su opini&oacute;</strong><strong>n</strong></span> sobre las cuestiones planteadas.</li><li>Si de alguna de las preguntas no est&aacute; totalmente seguro de la respuesta, no importa, nos interesa su estimaci&oacute;n.</li><li>La mayor&iacute;a de las preguntas consiste en responder entre 1 (no se est&aacute; de acuerdo con la afirmaci&oacute;n) a 9 (se est&aacute; totalmente de acuerdo con la afirmaci&oacute;n). El resto de valores grad&uacute;an estos dos extremos. Se&ntilde;ale el valor m&aacute;s apropiado en cada caso.</li></ul>"
     contact="Si tiene alguna duda, no dude en contactar con nosotros (jcnaranjov@unal.edu.co; teléfono: <strong>+57 6 8879300 ext. 50415 </strong>)"
-    thanks = "<div><!--block-->Gracias por participar, su opinión es muy importante para nosotros</div>"
+    thanks = "Gracias por participar"
     instrument_header.save()
     trans_instrument_header = Trans_instrument_header(instrument_header=instrument_header,user_instructions=user_instructions,i18n_code=LanguageChoice.ES.name, contact_info=contact,thanks=thanks )
     trans_instrument_header.save()
