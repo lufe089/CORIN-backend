@@ -250,7 +250,7 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
         model = Participant_response_header
         # fields = ('__all__')
         #fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id','responsesList')
-        fields = ('id','email','comments','position','area','is_directive','customized_instrument_id','responsesList', 'is_complete')
+        fields = ('id','email','comments','area','is_directive','customized_instrument_id','responsesList', 'is_complete')
 
     def create(self, validated_data):
         print ("Entre al create del responses del instrument")
