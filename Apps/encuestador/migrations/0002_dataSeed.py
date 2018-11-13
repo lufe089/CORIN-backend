@@ -26,7 +26,6 @@ def insert_data(apps, schema_editor):
     Surveys_by_client= apps.get_model(APP_NAME, 'Surveys_by_client')
     Customized_instrument= apps.get_model(APP_NAME, 'Customized_instrument')
     Config_surveys_by_clients= apps.get_model(APP_NAME, 'Config_surveys_by_clients')
-    Item_structure = apps.get_model(APP_NAME, 'Item_classification_structure')
 
     ###  Clean the data from the tables in which we introduce data in this method
     Instrument_structure_history.objects.all().delete()
@@ -44,7 +43,6 @@ def insert_data(apps, schema_editor):
     Surveys_by_client.objects.all().delete()
     Config_surveys_by_clients.objects.all().delete()
     Customized_instrument.objects.all().delete()
-    Item_structure.objects.all().delete()
 
 
     ### This list is used later for adding elements to the evaluation instrument
@@ -123,7 +121,9 @@ def insert_data(apps, schema_editor):
     dim_orientEmpre = ItemClassification(name="Orientación emprendedora", type=ClassificationChoice.DIMENSION.value,
                               i18n_code=LanguageChoice.ES.name)
     dim_orientEmpre.save()
-
+    dim_orientRiesgo = ItemClassification(name="Orientación al riesgo", type=ClassificationChoice.DIMENSION.value,
+                              i18n_code=LanguageChoice.ES.name)
+    dim_orientRiesgo.save()
     dim_prioriz = ItemClassification(name="Priorización", type=ClassificationChoice.DIMENSION.value,
                               i18n_code=LanguageChoice.ES.name)
     dim_prioriz.save()
@@ -209,108 +209,6 @@ def insert_data(apps, schema_editor):
     comp_profesionalismo.save()
     comp_retribucion= ItemClassification(name="Retribución",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
     comp_retribucion.save()
-
-    # ESTRUCUTRA DE LA CLASIFICACIÓN DE ITEMS
-
-    itemClassiEstru1 = Item_structure(category= cat_entorno_estrateg, dimension= dim_entorno)
-    itemClassiEstru2 = Item_structure(category= cat_entorno_estrateg, component= comp_formulacion, dimension= dim_estrategia)
-    itemClassiEstru3 = Item_structure(category= cat_entorno_estrateg, component= comp_apropiacion, dimension= dim_estrategia)
-
-    itemClassiEstru4 = Item_structure(category= cat_estructura, component= comp_especializacion, dimension= dim_complOrga)
-    itemClassiEstru5 = Item_structure(category= cat_estructura, component= comp_diferenFuncional, dimension= dim_complOrga)
-    itemClassiEstru6 = Item_structure(category= cat_estructura, component= comp_profesionalismo, dimension= dim_complOrga)
-    itemClassiEstru7 = Item_structure(category= cat_estructura, component= comp_centralizacion, dimension= dim_controlBuroc)
-    itemClassiEstru8 = Item_structure(category= cat_estructura, component= comp_formulacion, dimension= dim_controlBuroc)
-    itemClassiEstru9 = Item_structure(category= cat_estructura, component= comp_diferenVertical, dimension= dim_controlBuroc)
-
-    itemClassiEstru10 = Item_structure(category= cat_capacOrganiza, dimension= dim_ambidestreza)
-    itemClassiEstru11 = Item_structure(category= cat_capacOrganiza, dimension= dim_relacionam)
-    itemClassiEstru12 = Item_structure(category=cat_capacOrganiza, dimension=dim_orientClie)
-    itemClassiEstru13 = Item_structure(category=cat_capacOrganiza, dimension=dim_veloc)
-    itemClassiEstru14 = Item_structure(category=cat_capacOrganiza, dimension=dim_adaptabilidad)
-    itemClassiEstru15 = Item_structure(category=cat_capacOrganiza, dimension=dim_ejecucion)
-    itemClassiEstru16 = Item_structure(category=cat_capacOrganiza, dimension=dim_orientEmpre)
-
-    itemClassiEstru17 = Item_structure(category=cat_competOrganiz, dimension=dim_comunEffect)
-    itemClassiEstru18 = Item_structure(category=cat_competOrganiz, dimension=dim_trabaj_equ)
-    itemClassiEstru19 = Item_structure(category=cat_competOrganiz, dimension=dim_tolError)
-    itemClassiEstru20 = Item_structure(category=cat_competOrganiz, dimension=dim_manConfli)
-    itemClassiEstru21 = Item_structure(category=cat_competOrganiz, dimension=dim_tom_decis)
-    itemClassiEstru22 = Item_structure(category=cat_competOrganiz, dimension=dim_simpli_agil)
-    itemClassiEstru23 = Item_structure(category=cat_competOrganiz, dimension=dim_recono_exig)
-    itemClassiEstru24 = Item_structure(category=cat_competOrganiz, dimension=dim_prioriz)
-
-    itemClassiEstru25 = Item_structure(category=cat_liderazgo, component=comp_influeIdealizada, dimension=dim_liderazgo)
-    itemClassiEstru26 = Item_structure(category=cat_liderazgo, component=comp_motivacion, dimension=dim_liderazgo)
-    itemClassiEstru27 = Item_structure(category=cat_liderazgo, component=comp_estimuIntelec, dimension=dim_liderazgo)
-    itemClassiEstru28 = Item_structure(category=cat_liderazgo, component=comp_considIndividualizada, dimension=dim_liderazgo)
-    itemClassiEstru29 = Item_structure(category=cat_liderazgo, component=comp_metricas, dimension=dim_metri)
-    itemClassiEstru30 = Item_structure(category=cat_liderazgo, component=comp_retribucion, dimension=dim_metri)
-
-    itemClassiEstru31 = Item_structure(category=cat_rasgos, dimension=dim_orienRiesg)
-    itemClassiEstru32 = Item_structure(category=cat_rasgos, dimension=dim_libertad)
-    itemClassiEstru33 = Item_structure(category=cat_rasgos, dimension=dim_flexiMental)
-    itemClassiEstru34 = Item_structure(category=cat_rasgos, dimension=dim_compromiso)
-    itemClassiEstru35 = Item_structure(category=cat_rasgos, dimension=dim_confianza)
-    itemClassiEstru36 = Item_structure(category=cat_rasgos, dimension=dim_curiosidad)
-    itemClassiEstru37 = Item_structure(category=cat_rasgos, dimension=dim_respeto)
-    itemClassiEstru38 = Item_structure(category=cat_rasgos, dimension=dim_confrontacion)
-    itemClassiEstru39 = Item_structure(category=cat_rasgos, dimension=dim_aceptaDiv)
-    itemClassiEstru40 = Item_structure(category=cat_rasgos, dimension=dim_asociacion)
-
-    itemClassiEstru41 = Item_structure(category=cat_roles, dimension=dim_geneIdeas)
-    itemClassiEstru42 = Item_structure(category=cat_roles, dimension=dim_promIdeas)
-    itemClassiEstru43 = Item_structure(category=cat_roles, dimension=dim_impIdeas)
-
-    itemClassiEstru1.save()
-    itemClassiEstru2.save()
-    itemClassiEstru3.save()
-    itemClassiEstru4.save()
-    itemClassiEstru5.save()
-    itemClassiEstru6.save()
-    itemClassiEstru7.save()
-    itemClassiEstru8.save()
-    itemClassiEstru9.save()
-    itemClassiEstru10.save()
-    itemClassiEstru11.save()
-    itemClassiEstru12.save()
-    itemClassiEstru13.save()
-    itemClassiEstru14.save()
-    itemClassiEstru15.save()
-    itemClassiEstru16.save()
-    itemClassiEstru17.save()
-    itemClassiEstru18.save()
-    itemClassiEstru19.save()
-    itemClassiEstru20.save()
-    itemClassiEstru21.save()
-    itemClassiEstru22.save()
-    itemClassiEstru23.save()
-    itemClassiEstru24.save()
-    itemClassiEstru25.save()
-    itemClassiEstru26.save()
-    itemClassiEstru27.save()
-    itemClassiEstru28.save()
-    itemClassiEstru29.save()
-    itemClassiEstru30.save()
-    itemClassiEstru31.save()
-    itemClassiEstru32.save()
-    itemClassiEstru33.save()
-    itemClassiEstru34.save()
-    itemClassiEstru35.save()
-    itemClassiEstru36.save()
-    itemClassiEstru37.save()
-    itemClassiEstru38.save()
-    itemClassiEstru39.save()
-    itemClassiEstru40.save()
-    itemClassiEstru41.save()
-    itemClassiEstru42.save()
-    itemClassiEstru43.save()
-
-
-
-
-
-
 
     # Parametric master
     likert_one_to_nine_master =Parametric_master(name="1-to-9 Likert",description="Escala likert del 1 al 9")
@@ -809,9 +707,9 @@ def insert_data(apps, schema_editor):
 
     ##### Instrument headers and basic structure
     instrument_header = Instrument_header(version_name="1.0.a1",is_active=True)
-    user_instructions= "<ul><li><!--block-->Por favor, conteste <strong>todas&nbsp;</strong>las preguntas.</li><li><!--block-->No existen respuestas correctas, sólo queremos conocer <strong>su opinión</strong> sobre las cuestiones planteadas.</li><li><!--block-->Si de alguna de las preguntas no está totalmente seguro de la respuesta, no importa, nos interesa su estimación.</li><li><!--block-->La mayoría de las preguntas consiste en responder entre 1 (no se está de acuerdo con la afirmación) a 9 (se está totalmente de acuerdo con la afirmación). El resto de valores gradúan estos dos extremos. Señale el valor más apropiado en cada caso.</li></ul>"
+    user_instructions= "<ul> <li>Por favor, conteste <span style='text-decoration: underline;'><strong>todas</strong> </span>las preguntas.</li><li>No existen respuestas correctas, s&oacute;lo queremos conocer <span style='text-decoration: underline;'><strong>su opini&oacute;</strong><strong>n</strong></span> sobre las cuestiones planteadas.</li><li>Si de alguna de las preguntas no est&aacute; totalmente seguro de la respuesta, no importa, nos interesa su estimaci&oacute;n.</li><li>La mayor&iacute;a de las preguntas consiste en responder entre 1 (no se est&aacute; de acuerdo con la afirmaci&oacute;n) a 9 (se est&aacute; totalmente de acuerdo con la afirmaci&oacute;n). El resto de valores grad&uacute;an estos dos extremos. Se&ntilde;ale el valor m&aacute;s apropiado en cada caso.</li></ul>"
     contact="Si tiene alguna duda, no dude en contactar con nosotros (jcnaranjov@unal.edu.co; teléfono: <strong>+57 6 8879300 ext. 50415 </strong>)"
-    thanks = "<div><!--block-->Gracias por participar, su opinión es muy importante para nosotros</div>"
+    thanks = "Gracias por participar"
     instrument_header.save()
     trans_instrument_header = Trans_instrument_header(instrument_header=instrument_header,user_instructions=user_instructions,i18n_code=LanguageChoice.ES.name, contact_info=contact,thanks=thanks )
     trans_instrument_header.save()
@@ -907,14 +805,12 @@ def insert_data(apps, schema_editor):
     config_survey.save()
 
     # Se crea un survey personalizado para el cliente
-    customized_instrument= Customized_instrument (config_survey=config_survey, custom_general_description = "Descripción general", custom_feature_description = "Descripción de las características", custom_disclaimer = "Texto de prueba", custom_user_instructions=user_instructions, custom_contact_info=contact, custom_thanks="Gracias por participar, hasta pronto. ", access_code = "12345", prefix = "C1")
+    customized_instrument= Customized_instrument (config_survey=config_survey, client=clientTest,num_completed_responses=0,custom_contact_info=contact, custom_user_instructions=user_instructions, custom_thanks="Gracias por participar, hasta pronto. ")
     customized_instrument.save()
 
     # Se crean un survey para el cliente de prueba para hacer pruebas
-    survey_by_client = Surveys_by_client(acces_code="12345",config_survey=config_survey, completed = False)
+    survey_by_client = Surveys_by_client(client=clientTest, company=companyTest, acces_code="12345",config_survey=config_survey)
     survey_by_client.save()
-
-
 
 
 
