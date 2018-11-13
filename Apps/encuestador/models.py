@@ -192,7 +192,6 @@ class Participant_response_header(models.Model):
     is_complete = models.BooleanField(default=None)
     comments = models.TextField(default=None, null=True, blank=True)
     is_directive =  models.BooleanField()
-    position = models.IntegerField(default=None, null=True, blank=True)
     area = models.IntegerField()
 
 
