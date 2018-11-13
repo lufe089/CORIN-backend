@@ -167,6 +167,8 @@ class ResponsesView(APIView):
         responseHeadersByCompany = Participant_response_header.objects.filter(
             customized_instrument__config_survey__client__id=1).values('id')
 
+
+
         # Dimensions
         dimensions_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__dimension_id").annotate(name=F('item__dimension__name'), idElement=F('item__dimension_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
@@ -177,11 +179,24 @@ class ResponsesView(APIView):
                                                                                  "item__component_id").annotate(name=F('item__component__name'), idElement=F('item__component_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
 
         # Categories
-        """ Tra elos campos sin renombrarlos
+        """ Trae los campos sin renombrarlos
         categories_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__category__name","item__category_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
             """
 
+
+        # Areas por categorias
+
+        list_areas_by_categories_average_todos = []
+        ## En vue data.js de la vista están definidas las 5 áreas quemadas sobre las que se trabaja, por ello el ciclo tiene un rage de 1 a 6
+        for i in range (1,6):
+            list_areas_by_categories_average_individual =[]
+            list_areas_by_categories_average_individual.append(i)
+            areas_by_categories_average = Items_respon_by_participants.objects.filter(participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = i).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'), average = Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)).order_by('-average')
+            list_areas_by_categories_average_individual.append(areas_by_categories_average)
+            list_areas_by_categories_average_todos.append(list_areas_by_categories_average_individual)
+        print("Lista de listas para las áreas")
+        print(list_areas_by_categories_average_todos)
         # Usa el atributo f para renombrar el valor de un campo. Esto lo hago para que en la tabla de la vista todos se llamen igual( catogiras, dimensions,components) y puedan dibujar mas facil. Tiene que tener al menos un campo value para que funcione
         categories_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
