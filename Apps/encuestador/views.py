@@ -65,7 +65,7 @@ def consultAreas():
     parameteric_master = Parametric_master.objects.get(name="areas", end_date=None)
     try:
         areas = Trans_parametric_table.objects.filter(parametric_master=parameteric_master, i18n_code="ES").values(
-            "i18n_code").annotate(text=F('option_label'), value=F('numeric_value')).order_by('numeric_value')
+           "id", "i18n_code").annotate(text=F('option_label'), value=F('id')).order_by('numeric_value')
         return areas
 
     except Parametric_master.DoesNotExist:
@@ -221,19 +221,20 @@ class ResponsesView(APIView):
             print(area)
 
             print(area['value'])
+            #El id de aqu es el id de la tabla parametrica
             areas_by_categories_average = Items_respon_by_participants.objects.filter(
                 participant_response_header__id__in=responseHeadersByCompany).filter(
-                participant_response_header__area=area['value']).values("item__category_id").annotate(
-                area_id=F('participant_response_header__area'), category_name=F('item__category__name'),
-                idElement=F('item__category_id'), average=Avg('answer_numeric'),
+                participant_response_header__area=area['id']).values("item__category_id").annotate(
+                area=F('participant_response_header__area__option_label'), category_name=F('item__category__name'),
+                average=Avg('answer_numeric'),
                 n=Count('participant_response_header', distinct=True)).order_by('-average')
 
             list_areas_by_categories_average_todos.append(
-                {'idArea': area['value'], 'name': area['text'], 'averageByCategories': areas_by_categories_average})
+                {'idArea': area['id'], 'name': area['text'], 'averageByCategories': areas_by_categories_average})
 
             # Promedio por area
             area_average_data = Items_respon_by_participants.objects.filter(
-                participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = area['value']).values(
+                participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = area['id']).values(
                 "participant_response_header__area").annotate(average=Avg('answer_numeric'),
                 n=Count('participant_response_header', distinct=True)).order_by('-average')
 
