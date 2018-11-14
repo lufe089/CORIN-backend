@@ -167,8 +167,6 @@ class ResponsesView(APIView):
         responseHeadersByCompany = Participant_response_header.objects.filter(
             customized_instrument__config_survey__client__id=1).values('id')
 
-
-
         # Dimensions
         dimensions_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__dimension_id").annotate(name=F('item__dimension__name'), idElement=F('item__dimension_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
@@ -186,17 +184,31 @@ class ResponsesView(APIView):
 
 
         # Areas por categorias
-
         list_areas_by_categories_average_todos = []
         ## En vue data.js de la vista están definidas las 5 áreas quemadas sobre las que se trabaja, por ello el ciclo tiene un rage de 1 a 6
+        list_average_by_area =[]
         for i in range (1,6):
             list_areas_by_categories_average_individual =[]
             list_areas_by_categories_average_individual.append(i)
             areas_by_categories_average = Items_respon_by_participants.objects.filter(participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = i).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'), average = Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)).order_by('-average')
             list_areas_by_categories_average_individual.append(areas_by_categories_average)
             list_areas_by_categories_average_todos.append(list_areas_by_categories_average_individual)
+
+            # Promedio por area
+            area_average = Items_respon_by_participants.objects.filter(
+                participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = i).values(
+                "participant_response_header__area").annotate(average=Avg('answer_numeric'),
+                n=Count('participant_response_header', distinct=True)).order_by('-average')
+            individual_average_area = []
+            individual_average_area.append(i)
+            individual_average_area.append(area_average)
+            list_average_by_area.append(individual_average_area)
+
         print("Lista de listas para las áreas")
         print(list_areas_by_categories_average_todos)
+
+
+
         # Usa el atributo f para renombrar el valor de un campo. Esto lo hago para que en la tabla de la vista todos se llamen igual( catogiras, dimensions,components) y puedan dibujar mas facil. Tiene que tener al menos un campo value para que funcione
         categories_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
@@ -223,7 +235,13 @@ class ResponsesView(APIView):
             participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'), n= Count('participant_response_header',distinct=True))
 
         print (request)
-        content = {'overall_average':overall_average_count['average'], 'n':overall_average_count['n'], "average_by_dimensions":dimensions_average, "average_by_components": components_average, "average_by_categories":categories_average , "categories_average_by_directives": categories_average_by_directives , "categories_average_by_no_directives": categories_average_by_no_directives }
+        content = {'overall_average': overall_average_count['average'], 'n': overall_average_count['n'],
+                   "average_by_dimensions": dimensions_average, "average_by_components": components_average,
+                   "average_by_categories": categories_average,
+                   "categories_average_by_directives": categories_average_by_directives,
+                   "categories_average_by_no_directives": categories_average_by_no_directives,
+                   "categories_average_by_area": list_areas_by_categories_average_todos,
+                   "average_by_area": list_average_by_area}
         # return Response(content)
         return Response(content)
 
@@ -292,6 +310,23 @@ class ResponsesView(APIView):
             print("INFO: No se encontró configuración para el cliente enviado")
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+    @api_view(['POST'])
+    def getParticipantResponsesToDownload(request):
+        print(request)
+        idCompany= request.POST['idCompany']
+
+        # Todos los ids de los clientes asociados a la compania
+        ids_clients= Client.objects.filter(company__id=idCompany).values("id")
+
+        print(ids_clients)
+        # Consultar las respuestas
+        all_responses_by_participants = Items_respon_by_participants.objects.filter(
+                participant_response_header__customized_instrument__config_survey__client__id__in=ids_clients).values(
+                "answer_numeric").annotate(participante_id=F('participant_response_header__id'), is_directive=F('participant_response_header__is_directive'),
+                                                                       area=F('participant_response_header__area'),
+                                                                       client_id=F('participant_response_header__customized_instrument__config_survey__client__id'),
+                                                                       pregunta_id=F('item__id')).order_by('item__id','participant_response_header__id')
+        return Response(all_responses_by_participants)
 
 
     """ Lo comento pq al fin no sirve0
