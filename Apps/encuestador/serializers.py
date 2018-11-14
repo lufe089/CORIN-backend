@@ -11,7 +11,7 @@ from Apps.encuestador.models import Config_surveys_by_clients
 from Apps.encuestador.models import Trans_instrument_header
 from Apps.encuestador.models import Items_respon_by_participants
 from Apps.encuestador.models import Instrument_structure_history
-from Apps.encuestador.models import Surveys_by_client
+from Apps.encuestador.models import Surveys_by_client,Trans_parametric_table
 from Apps.encuestador.models import LanguageChoice
 from rest_framework.views import APIView
 from rest_framework import serializers
@@ -34,12 +34,12 @@ class ClientSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ResponseFormatSerializer(serializers.HyperlinkedModelSerializer):
-    parametric_table=serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    #parametric_table=serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    parametric_table_id=serializers.IntegerField(write_only=True)
     class Meta:
         model = Response_format
         #fields = ('name', 'description','i18n_code','translations')
-        fields = ('name','type','parametric_table')
-
+        #fields = ('name','type','numeric_value','parametric_table_id')
 
 # Serializa el instrumento
 class InstrumentHeaderSerializer(serializers.HyperlinkedModelSerializer):
@@ -68,6 +68,7 @@ def consultActiveInstrument():
 
 class TranslatedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
     instrument_header = InstrumentHeaderSerializer(many=False, read_only=True)
+    instrument_header_id = serializers.IntegerField(write_only=True)
     class Meta:
         model = Trans_instrument_header
         #fields = ( 'instrument_header','id', 'general_description', 'feature_description', 'disclaimer', 'user_instructions',
@@ -220,6 +221,7 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
     #survey_by_client = SurveysByClientSerializer(many=False, read_only=True)
 
     customized_instrument_id = serializers.IntegerField(write_only=True)
+    area_id = serializers.IntegerField(write_only=True)
     #survey_by_client_id = serializers.IntegerField(write_only=True)
 
     #responsesList = serializers.StringRelatedField(many=True)
@@ -250,7 +252,7 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
         model = Participant_response_header
         # fields = ('__all__')
         #fields = ('id','email','comments','position','area','customized_instrument','customized_instrument_id','responsesList')
-        fields = ('id','email','comments','area','is_directive','customized_instrument_id','responsesList', 'is_complete')
+        fields = ('id','email','comments','area_id','is_directive','customized_instrument_id','responsesList', 'is_complete')
 
     def create(self, validated_data):
         print ("Entre al create del responses del instrument")

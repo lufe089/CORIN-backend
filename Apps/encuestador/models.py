@@ -192,7 +192,8 @@ class Participant_response_header(models.Model):
     is_complete = models.BooleanField(default=None)
     comments = models.TextField(default=None, null=True, blank=True)
     is_directive =  models.BooleanField()
-    area = models.IntegerField()
+    area = models.ForeignKey(Trans_parametric_table, related_name="area", on_delete=models.SET_NULL,
+                                  default=None, null=True, blank=True)
 
 
 class Items_respon_by_participants(models.Model):

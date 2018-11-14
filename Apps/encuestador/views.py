@@ -15,6 +15,7 @@ from Apps.encuestador.models import Participant_response_header
 from Apps.encuestador.models import Company, Client,Config_surveys_by_clients
 from Apps.encuestador.models import Response_format
 from Apps.encuestador.models import Surveys_by_client
+from Apps.encuestador.models import Trans_parametric_table,Parametric_master
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
@@ -58,6 +59,17 @@ def consultActiveInstrument():
     except Exception as e:
         print("ERROR: Excepcion consultando instrument_header , el get no arrojo resultados en el metodo ConsultActiveInstrument")
         return None
+
+def consultAreas():
+    # Nombre dado a la tabla que tiene las áreas
+    parameteric_master = Parametric_master.objects.get(name="areas", end_date=None)
+    try:
+        areas = Trans_parametric_table.objects.filter(parametric_master=parameteric_master, i18n_code="ES").values(
+            "i18n_code").annotate(text=F('option_label'), value=F('numeric_value')).order_by('numeric_value')
+        return areas
+
+    except Parametric_master.DoesNotExist:
+        return False
 
 class CustomizedInstrumentViewSet (viewsets.ModelViewSet):
     serializer_class = CustomizedInstrumentSerializer
@@ -156,6 +168,15 @@ class AverageByClassifiers (viewsets.ModelViewSet):
 
 
 class ResponsesView(APIView):
+    @api_view(['GET'])
+    def get_areas(request):
+
+        result=consultAreas()
+        if(result == False):
+            print("INFO: No se encontró configuración para la tabla paramétrica de areas")
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response(result)
 
     @api_view(['GET'])
     # @renderer_classes((JSONRenderer,))
@@ -185,28 +206,43 @@ class ResponsesView(APIView):
         list_areas_by_categories_average_todos = []
         ## En vue data.js de la vista están definidas las 5 áreas quemadas sobre las que se trabaja, por ello el ciclo tiene un rage de 1 a 6
         list_average_by_area =[]
-        areas={}
+        areas = consultAreas()
+
+        # FIXME estos datos son iguales a los que estan en en el front-end pero estan quedamos tal vez toque volverlos una tabla paramétrica
+        """
         areas[1]= 'Área de Producción/operaciones'
         areas[2]= 'Área comercial'
         areas[3]= 'Área de tecnología'
         areas[4]= 'Área de gestión humana'
         areas[5]= 'Área de investigación y desarrollo'
+        """
 
-        for i in range (1,6):
-            areas_by_categories_average = Items_respon_by_participants.objects.filter(participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = i).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'), average = Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)).order_by('-average')
-            list_areas_by_categories_average_todos.append({'idArea': i, 'averageByCategories':areas_by_categories_average})
+        for area in areas:
+            print(area)
+
+            print(area['value'])
+            areas_by_categories_average = Items_respon_by_participants.objects.filter(
+                participant_response_header__id__in=responseHeadersByCompany).filter(
+                participant_response_header__area=area['value']).values("item__category_id").annotate(
+                area_id=F('participant_response_header__area'), category_name=F('item__category__name'),
+                idElement=F('item__category_id'), average=Avg('answer_numeric'),
+                n=Count('participant_response_header', distinct=True)).order_by('-average')
+
+            list_areas_by_categories_average_todos.append(
+                {'idArea': area['value'], 'name': area['text'], 'averageByCategories': areas_by_categories_average})
 
             # Promedio por area
             area_average_data = Items_respon_by_participants.objects.filter(
-                participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = i).values(
+                participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = area['value']).values(
                 "participant_response_header__area").annotate(average=Avg('answer_numeric'),
                 n=Count('participant_response_header', distinct=True)).order_by('-average')
 
             if area_average_data.exists():
-                list_average_by_area.append({'average':area_average_data.first()['average'],'n':area_average_data.first()['n'], 'name':areas[i]})
+                list_average_by_area.append({'average':area_average_data.first()['average'],'n':area_average_data.first()['n'], 'name':area['text']+' (' + str(area_average_data.first()['n'])+ ')'})
             else:
                 # list_average_by_area[i]= {'average': 0, 'n':0, 'name':areas[i]}
-                list_average_by_area.append({'average': 0, 'n':0, 'name':areas[i]})
+                list_average_by_area.append({'average': 0, 'n':0, 'name':area['text']+' (0) '})
+
 
         print("Lista de listas para las áreas")
         print(list_areas_by_categories_average_todos)
