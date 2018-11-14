@@ -181,28 +181,32 @@ class ResponsesView(APIView):
         categories_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__category__name","item__category_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
             """
-
-
         # Areas por categorias
         list_areas_by_categories_average_todos = []
         ## En vue data.js de la vista están definidas las 5 áreas quemadas sobre las que se trabaja, por ello el ciclo tiene un rage de 1 a 6
         list_average_by_area =[]
+        areas={}
+        areas[1]= 'Área de Producción/operaciones'
+        areas[2]= 'Área comercial'
+        areas[3]= 'Área de tecnología'
+        areas[4]= 'Área de gestión humana'
+        areas[5]= 'Área de investigación y desarrollo'
+
         for i in range (1,6):
-            list_areas_by_categories_average_individual =[]
-            list_areas_by_categories_average_individual.append(i)
             areas_by_categories_average = Items_respon_by_participants.objects.filter(participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = i).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'), average = Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)).order_by('-average')
-            list_areas_by_categories_average_individual.append(areas_by_categories_average)
-            list_areas_by_categories_average_todos.append(list_areas_by_categories_average_individual)
+            list_areas_by_categories_average_todos.append({'idArea': i, 'averageByCategories':areas_by_categories_average})
 
             # Promedio por area
-            area_average = Items_respon_by_participants.objects.filter(
+            area_average_data = Items_respon_by_participants.objects.filter(
                 participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__area = i).values(
                 "participant_response_header__area").annotate(average=Avg('answer_numeric'),
                 n=Count('participant_response_header', distinct=True)).order_by('-average')
-            individual_average_area = []
-            individual_average_area.append(i)
-            individual_average_area.append(area_average)
-            list_average_by_area.append(individual_average_area)
+
+            if area_average_data.exists():
+                list_average_by_area.append({'average':area_average_data.first()['average'],'n':area_average_data.first()['n'], 'name':areas[i]})
+            else:
+                # list_average_by_area[i]= {'average': 0, 'n':0, 'name':areas[i]}
+                list_average_by_area.append({'average': 0, 'n':0, 'name':areas[i]})
 
         print("Lista de listas para las áreas")
         print(list_areas_by_categories_average_todos)
