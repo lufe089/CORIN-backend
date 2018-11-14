@@ -235,6 +235,33 @@ def insert_data(apps, schema_editor):
     likert_one_to_nine_8.save()
     likert_one_to_nine_9.save()
 
+
+    # Agregar tabla parametrica para las areas
+    areas = Parametric_master(name="areas", description="Areas de trabajo del participante")
+    areas.save()
+
+    area_produccion = Trans_parametric_table(parametric_master=areas,
+                                                  option_label="Área de producción/operaciones", numeric_value=1,
+                                                  i18n_code=LanguageChoice.ES.name)
+    area_comercial = Trans_parametric_table(parametric_master=areas,
+                                             option_label="Área comercial", numeric_value=2,
+                                             i18n_code=LanguageChoice.ES.name)
+    area_tecnologia = Trans_parametric_table(parametric_master=areas,
+                                             option_label="Área de tecnología", numeric_value=3,
+                                             i18n_code=LanguageChoice.ES.name)
+    area_gestion_humana = Trans_parametric_table(parametric_master=areas,
+                                             option_label="Área de gestión humana", numeric_value=4,
+                                             i18n_code=LanguageChoice.ES.name)
+    area_investigacion = Trans_parametric_table(parametric_master=areas,
+                                             option_label="Área de investigación y desarrollo", numeric_value=5,
+                                             i18n_code=LanguageChoice.ES.name)
+    area_produccion.save()
+    area_comercial.save()
+    area_tecnologia.save()
+    area_gestion_humana.save()
+    area_investigacion.save()
+
+
     ######################### Response format
     one_to_nine_response= Response_format(parametric_table=likert_one_to_nine_master, name="1-to-9 Likert", type=ResponseFormatType.LIKERT_NINE)
     one_to_nine_response.save()
@@ -805,12 +832,9 @@ def insert_data(apps, schema_editor):
     config_survey.save()
 
     # Se crea un survey personalizado para el cliente
-    customized_instrument= Customized_instrument (config_survey=config_survey, client=clientTest,num_completed_responses=0,custom_contact_info=contact, custom_user_instructions=user_instructions, custom_thanks="Gracias por participar, hasta pronto. ")
+    customized_instrument= Customized_instrument (config_survey=config_survey,custom_contact_info=contact, access_code="12345", prefix="C1", custom_user_instructions=user_instructions, custom_thanks="Gracias por participar, hasta pronto. ")
     customized_instrument.save()
 
-    # Se crean un survey para el cliente de prueba para hacer pruebas
-    survey_by_client = Surveys_by_client(client=clientTest, company=companyTest, acces_code="12345",config_survey=config_survey)
-    survey_by_client.save()
 
 
 
