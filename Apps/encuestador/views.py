@@ -295,13 +295,18 @@ class ResponsesView(APIView):
         # return Response(content)
         return Response(content)
 
-    @api_view(['GET'])
+    @api_view(['POST'])
     def getClientAndConfiguration(request, format=None):
         """ Trae informacion del cliente y las configuraciones relacionadas con el cliente"""
 
+        idCompany = request.data['idCompany']
+        # Consultar todos los ids de clientes asociados a una compañia
+        ids_clients = Client.objects.filter(company__id=idCompany).values("id")
+
+
         # FIXME poner el filtro de la compania
         # max_survey=Config_surveys_by_clients.objects.filter(client=OuterRef('pk'))),
-        clients_with_configuration= Config_surveys_by_clients.objects.all().values('client__id', 'client__client_company_name', 'client__company_id','client__constitution_year', 'client__number_employees',
+        clients_with_configuration= Config_surveys_by_clients.objects.all().filter(client__id__in=ids_clients).values('client__id', 'client__client_company_name', 'client__company_id','client__constitution_year', 'client__number_employees',
                   'client__is_corporate_group', 'client__is_family_company',"max_surveys","used_surveys").annotate(config_id=F('id'))
         #clients_without_configuration= Client.objects.all().annotate(max_surveys=Value('0'),used_surveys=Value('0'))
 
@@ -309,7 +314,7 @@ class ResponsesView(APIView):
         clients_with_configuration_ids = Config_surveys_by_clients.objects.all().values('client__id')
 
         # Se hace la resta en los campos que se anotan solo como truco para que los valores sean zero pues no encontre como inicializarlos realmente en cero
-        clients_without_configuration= Client.objects.exclude(id__in=clients_with_configuration_ids).values('id', 'client_company_name', 'company_id','constitution_year', 'number_employees',
+        clients_without_configuration= Client.objects.exclude(id__in=clients_with_configuration_ids).filter(id__in=ids_clients).values('id', 'client_company_name', 'company_id','constitution_year', 'number_employees',
                   'is_corporate_group', 'is_family_company').annotate(max_surveys=Count('id')-Count('id'),used_surveys=Count('id')-Count('id'),config_id=Count('id')-Count('id')).order_by('-updated_at')
 
         #FIXME - Tratar de agregar los campos que faltan manualmente antes de retornar los datos
@@ -364,7 +369,7 @@ class ResponsesView(APIView):
     @api_view(['POST'])
     def getParticipantResponsesToDownload(request):
         #print(request)
-        idCompany= request.POST['idCompany']
+        idCompany = request.data['idCompany']
 
         # Todos los ids de los clientes asociados a la compania
         ids_clients= Client.objects.filter(company__id=idCompany).values("id")
@@ -373,37 +378,13 @@ class ResponsesView(APIView):
         # Consultar las respuestas
         all_responses_by_participants = Items_respon_by_participants.objects.filter(
                 participant_response_header__customized_instrument__config_survey__client__id__in=ids_clients).values(
-                "answer_numeric").annotate(participante_id=F('participant_response_header__id'), is_directive=F('participant_response_header__is_directive'),
-                                                                       area=F('participant_response_header__area'),
+                    "answer_numeric").annotate(participant_id=F('participant_response_header__id'), is_directive=F('participant_response_header__is_directive'),
+                                                                       area= F('participant_response_header__area__option_label'),
+                                                                       participant_email= F('participant_response_header__email'),
                                                                        client_id=F('participant_response_header__customized_instrument__config_survey__client__id'),
+                                                                       client_name=F('participant_response_header__customized_instrument__config_survey__client__client_company_name'),
                                                                        pregunta_id=F('item__id')).order_by('item__id','participant_response_header__id')
         return Response(all_responses_by_participants)
-
-    @api_view(['POST'])
-    def getClientsToDownload(request):
-        # print(request)
-        idCompany = request.POST['idCompany']
-
-        # Consultar todos los ids de clientes asociados a una compañia
-        ids_clients = Client.objects.filter(company__id=idCompany).values("id")
-
-       #Consultar los datos de todos los clientes
-        all_clients = Config_surveys_by_clients.objects.filter(
-            client__id__in=ids_clients).values("max_surveys").annotate(
-            client_id=F('client__id'),
-            company=F('client__client_company_name'),
-            constitution_year=F(
-                'client__constitution_year'),
-            num_empoyees=F(
-                'client__number_employees'),
-            is_corporate_group=F(
-                'client__is_corporate_group'),
-            is_family_company=F(
-                'client__is_family_company'),
-            used_surveys=F(
-                'used_surveys')).order_by('client__id')
-
-        return Response(all_clients)
 
     """ Lo comento pq al fin no sirve0
     @api_view(['GET'])
