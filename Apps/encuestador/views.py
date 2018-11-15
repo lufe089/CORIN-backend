@@ -15,7 +15,7 @@ from Apps.encuestador.models import Participant_response_header
 from Apps.encuestador.models import Company, Client,Config_surveys_by_clients
 from Apps.encuestador.models import Response_format
 from Apps.encuestador.models import Surveys_by_client
-from Apps.encuestador.models import Trans_parametric_table,Parametric_master
+from Apps.encuestador.models import Trans_parametric_table,Parametric_master,Item_classification_structure
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
@@ -179,6 +179,16 @@ class ResponsesView(APIView):
             return Response(result)
 
     @api_view(['GET'])
+    def get_active_items(self):
+
+        # Traigo el instrumento activo
+        active_instrument = consultActiveInstrument()
+        # Traigo el id de los items asociadas al instrumento activo y que esten activos
+        activeItemsId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
+            is_active=True).values('new_item__id')
+        queryset = Trans_item.objects.filter(item__in=activeItemsId).values().filter(i18n_code=LanguageChoice.ES.name)
+
+    @api_view(['GET'])
     # @renderer_classes((JSONRenderer,))
     def averageFilters(request, format=None):
         """
@@ -190,7 +200,13 @@ class ResponsesView(APIView):
 
         # Dimensions
         dimensions_average = Items_respon_by_participants.objects.filter(
-            participant_response_header__id__in=responseHeadersByCompany).values("item__dimension_id").annotate(name=F('item__dimension__name'), idElement=F('item__dimension_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+            participant_response_header__id__in=responseHeadersByCompany).values("item__dimension_id").annotate(name=F('item__dimension__name'), category=F('item__category__name'),idElement=F('item__dimension_id'),average=Avg('answer_numeric'), n=Count('participant_response_header',distinct=True)).order_by('-average')
+
+
+        # Traer todas las dimensiones y sus categorias asociads
+        dimensions_and_categories = Item_classification_structure.objects.values("dimension","category").distinct()
+        print("Dimensions and categories")
+        print(dimensions_and_categories)
 
         # Components
         # Respuestas de la compañía donde el componente no sea null
@@ -202,35 +218,31 @@ class ResponsesView(APIView):
         categories_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__category__name","item__category_id").annotate(average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
             """
-        # Areas por categorias
+
+        ###### Areas por categorias
         list_areas_by_categories_average_todos = []
         ## En vue data.js de la vista están definidas las 5 áreas quemadas sobre las que se trabaja, por ello el ciclo tiene un rage de 1 a 6
         list_average_by_area =[]
         areas = consultAreas()
 
-        # FIXME estos datos son iguales a los que estan en en el front-end pero estan quedamos tal vez toque volverlos una tabla paramétrica
-        """
-        areas[1]= 'Área de Producción/operaciones'
-        areas[2]= 'Área comercial'
-        areas[3]= 'Área de tecnología'
-        areas[4]= 'Área de gestión humana'
-        areas[5]= 'Área de investigación y desarrollo'
-        """
-
         for area in areas:
-            print(area)
-
-            print(area['value'])
             #El id de aqu es el id de la tabla parametrica
             areas_by_categories_average = Items_respon_by_participants.objects.filter(
                 participant_response_header__id__in=responseHeadersByCompany).filter(
                 participant_response_header__area=area['id']).values("item__category_id").annotate(
                 area=F('participant_response_header__area__option_label'), category_name=F('item__category__name'),
                 average=Avg('answer_numeric'),
-                n=Count('participant_response_header', distinct=True)).order_by('-average')
+                n=Count('participant_response_header', distinct=True)).order_by('item__category__name')
 
-            list_areas_by_categories_average_todos.append(
-                {'idArea': area['id'], 'name': area['text'], 'averageByCategories': areas_by_categories_average})
+            # Se construye un objecto que tendra para cada area los promedios ponderados
+            row = {}
+            if areas_by_categories_average.exists():
+                row['area'] = area['text'] +' (' + str(areas_by_categories_average.first()['n'])+ ')'
+                for result in areas_by_categories_average:
+                    row[result['category_name']] = round(result['average'],2)
+            else:
+                row['area'] = area['text'] + ' ( 0 )'
+            list_areas_by_categories_average_todos.append(row)
 
             # Promedio por area
             area_average_data = Items_respon_by_participants.objects.filter(
@@ -244,21 +256,17 @@ class ResponsesView(APIView):
                 # list_average_by_area[i]= {'average': 0, 'n':0, 'name':areas[i]}
                 list_average_by_area.append({'average': 0, 'n':0, 'name':area['text']+' (0) '})
 
-
-        print("Lista de listas para las áreas")
-        print(list_areas_by_categories_average_todos)
-
-
-
         # Usa el atributo f para renombrar el valor de un campo. Esto lo hago para que en la tabla de la vista todos se llamen igual( catogiras, dimensions,components) y puedan dibujar mas facil. Tiene que tener al menos un campo value para que funcione
         categories_average = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
-        print ("Categories average")
-        print(categories_average)
 
         categories_average_by_directives= Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__is_directive=1).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True) ).order_by('-average')
 
+        categories_labels = ItemClassification.objects.filter(type=ClassificationChoice.CATEGORY.value).values('name').annotate(key=F('name')).order_by('name')
+        """ category_names_list=[]
+        for category_name in categories_labels:
+            category_names_list.append(category_name['name'])"""
 
         # Los comento pq no los use al cambiar por contar con un distinc en el query
         # count_directives = Participant_response_header.objects.filter(id__in=responseHeadersByCompany).filter(is_directive=1).aggregate(Count('is_directive'))
@@ -275,14 +283,15 @@ class ResponsesView(APIView):
         overall_average_count = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'), n= Count('participant_response_header',distinct=True))
 
-        print (request)
+        # print (request)
         content = {'overall_average': overall_average_count['average'], 'n': overall_average_count['n'],
                    "average_by_dimensions": dimensions_average, "average_by_components": components_average,
                    "average_by_categories": categories_average,
                    "categories_average_by_directives": categories_average_by_directives,
                    "categories_average_by_no_directives": categories_average_by_no_directives,
                    "categories_average_by_area": list_areas_by_categories_average_todos,
-                   "average_by_area": list_average_by_area}
+                   "average_by_area": list_average_by_area,
+                   "category_names":categories_labels}
         # return Response(content)
         return Response(content)
 
@@ -290,6 +299,7 @@ class ResponsesView(APIView):
     def getClientAndConfiguration(request, format=None):
         """ Trae informacion del cliente y las configuraciones relacionadas con el cliente"""
 
+        # FIXME poner el filtro de la compania
         # max_survey=Config_surveys_by_clients.objects.filter(client=OuterRef('pk'))),
         clients_with_configuration= Config_surveys_by_clients.objects.all().values('client__id', 'client__client_company_name', 'client__company_id','client__constitution_year', 'client__number_employees',
                   'client__is_corporate_group', 'client__is_family_company',"max_surveys","used_surveys").annotate(config_id=F('id'))

@@ -100,7 +100,7 @@ class ItemSimpleSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Item
         #fields = ('name', 'description','i18n_code','translations')
-        fields = ('response_format','item_order', 'dimension','category','component')
+        fields = ('id','response_format','item_order', 'dimension','category','component')
 
 
 # Serializador usado para dibujar el instrumento
