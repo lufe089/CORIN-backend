@@ -312,13 +312,13 @@ class ResponsesView(APIView):
 
     @api_view(['POST'])
     def getParticipantResponsesToDownload(request):
-        print(request)
+        #print(request)
         idCompany= request.POST['idCompany']
 
         # Todos los ids de los clientes asociados a la compania
         ids_clients= Client.objects.filter(company__id=idCompany).values("id")
 
-        print(ids_clients)
+        #print(ids_clients)
         # Consultar las respuestas
         all_responses_by_participants = Items_respon_by_participants.objects.filter(
                 participant_response_header__customized_instrument__config_survey__client__id__in=ids_clients).values(
@@ -328,6 +328,31 @@ class ResponsesView(APIView):
                                                                        pregunta_id=F('item__id')).order_by('item__id','participant_response_header__id')
         return Response(all_responses_by_participants)
 
+    @api_view(['POST'])
+    def getClientsToDownload(request):
+        # print(request)
+        idCompany = request.POST['idCompany']
+
+        # Consultar todos los ids de clientes asociados a una compañia
+        ids_clients = Client.objects.filter(company__id=idCompany).values("id")
+
+       #Consultar los datos de todos los clientes
+        all_clients = Config_surveys_by_clients.objects.filter(
+            client__id__in=ids_clients).values("max_surveys").annotate(
+            client_id=F('client__id'),
+            company=F('client__client_company_name'),
+            constitution_year=F(
+                'client__constitution_year'),
+            num_empoyees=F(
+                'client__number_employees'),
+            is_corporate_group=F(
+                'client__is_corporate_group'),
+            is_family_company=F(
+                'client__is_family_company'),
+            used_surveys=F(
+                'used_surveys')).order_by('client__id')
+
+        return Response(all_clients)
 
     """ Lo comento pq al fin no sirve0
     @api_view(['GET'])

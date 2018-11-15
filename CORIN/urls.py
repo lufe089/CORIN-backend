@@ -61,6 +61,7 @@ urlpatterns = [
     url(r'^clients-and-survey-conf/$', views.ResponsesView.getClientAndConfiguration),
     url(r'^consult-custom-inst/$', views.ResponsesView.getCustomizedInstrument),
     url(r'^consult-responses/$', views.ResponsesView.getParticipantResponsesToDownload),
+    url(r'^consult-clients/$', views.ResponsesView.getClientsToDownload),
     url(r'^api/', include((router.urls, 'encuestador')))
 ]
 
