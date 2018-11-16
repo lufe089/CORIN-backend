@@ -357,7 +357,8 @@ class ResponsesView(APIView):
                     response={'config_survey_id': customized_instrument_to_client.config_survey.id,
                      'custom_user_instructions': customized_instrument_to_client.user_instructions,
                      'custom_contact_info': customized_instrument_to_client.contact_info,
-                     'custom_thanks': customized_instrument_to_client.thanks, 'prefix':'C'+str(idClient)}
+                     'custom_thanks': customized_instrument_to_client.thanks, 'prefix':'C'+str(idClient),
+                     'error': 'no_customized_instrument'}
                     print(response)
                     return Response(response,status = status.HTTP_200_OK)
                    # return Response( CustomizedInstrumentSerializer(customized_instrument_to_client,context={'request': request}).data,status = status.HTTP_200_OK)
