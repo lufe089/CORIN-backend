@@ -824,7 +824,7 @@ def insert_data(apps, schema_editor):
     companyTest.save()
 
     # Se crea un cliente de prueba
-    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia",client_company_name="Empresa 1", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False, created_at=datetime.datetime.now())
+    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia",client_company_name="Empresa 1", identification="50", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False, created_at=datetime.datetime.now())
     clientTest.save()
 
 

@@ -138,6 +138,7 @@ class Company(models.Model):
 
 class Client(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    identification = models.CharField(max_length=50)
     client_logo = models.CharField(max_length=100, default=None, null=True, blank=True)
     contact = models.CharField(max_length=50)
     client_company_name = models.CharField(max_length=100)
