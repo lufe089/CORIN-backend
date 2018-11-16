@@ -211,6 +211,7 @@ def insert_data(apps, schema_editor):
     comp_retribucion.save()
 
     # Parametric master
+    """
     likert_one_to_nine_master =Parametric_master(name="1-to-9 Likert",description="Escala likert del 1 al 9")
     likert_one_to_nine_master.save()
 
@@ -234,6 +235,33 @@ def insert_data(apps, schema_editor):
     likert_one_to_nine_7.save()
     likert_one_to_nine_8.save()
     likert_one_to_nine_9.save()
+    """
+
+    # Agregar tabla parametrica para las areas
+    areas = Parametric_master(name="areas", description="Areas de trabajo del participante")
+    areas.save()
+
+    area_produccion = Trans_parametric_table(parametric_master=areas,
+                                                  option_label="Área de producción/operaciones", numeric_value=1,
+                                                  i18n_code=LanguageChoice.ES.name)
+    area_comercial = Trans_parametric_table(parametric_master=areas,
+                                             option_label="Área comercial", numeric_value=2,
+                                             i18n_code=LanguageChoice.ES.name)
+    area_tecnologia = Trans_parametric_table(parametric_master=areas,
+                                             option_label="Área de tecnología", numeric_value=3,
+                                             i18n_code=LanguageChoice.ES.name)
+    area_gestion_humana = Trans_parametric_table(parametric_master=areas,
+                                             option_label="Área de gestión humana", numeric_value=4,
+                                             i18n_code=LanguageChoice.ES.name)
+    area_investigacion = Trans_parametric_table(parametric_master=areas,
+                                             option_label="Área de investigación y desarrollo", numeric_value=5,
+                                             i18n_code=LanguageChoice.ES.name)
+    area_produccion.save()
+    area_comercial.save()
+    area_tecnologia.save()
+    area_gestion_humana.save()
+    area_investigacion.save()
+
 
     ######################### Response format
     one_to_nine_response= Response_format(parametric_table=likert_one_to_nine_master, name="1-to-9 Likert", type=ResponseFormatType.LIKERT_NINE)
@@ -707,7 +735,7 @@ def insert_data(apps, schema_editor):
 
     ##### Instrument headers and basic structure
     instrument_header = Instrument_header(version_name="1.0.a1",is_active=True)
-    user_instructions= "<ul> <li>Por favor, conteste <span style='text-decoration: underline;'><strong>todas</strong> </span>las preguntas.</li><li>No existen respuestas correctas, s&oacute;lo queremos conocer <span style='text-decoration: underline;'><strong>su opini&oacute;</strong><strong>n</strong></span> sobre las cuestiones planteadas.</li><li>Si de alguna de las preguntas no est&aacute; totalmente seguro de la respuesta, no importa, nos interesa su estimaci&oacute;n.</li><li>La mayor&iacute;a de las preguntas consiste en responder entre 1 (no se est&aacute; de acuerdo con la afirmaci&oacute;n) a 5 (se est&aacute; totalmente de acuerdo con la afirmaci&oacute;n). El resto de valores grad&uacute;an estos dos extremos. Se&ntilde;ale el valor m&aacute;s apropiado en cada caso.</li></ul>"
+    user_instructions= "<ul> <li>Por favor, conteste <span style='text-decoration: underline;'><strong>todas</strong> </span>las preguntas.</li><li>No existen respuestas correctas, s&oacute;lo queremos conocer <span style='text-decoration: underline;'><strong>su opini&oacute;</strong><strong>n</strong></span> sobre las cuestiones planteadas.</li><li>Si de alguna de las preguntas no est&aacute; totalmente seguro de la respuesta, no importa, nos interesa su estimaci&oacute;n.</li><li>La mayor&iacute;a de las preguntas consiste en responder entre 1 (no se est&aacute; de acuerdo con la afirmaci&oacute;n) a 9 (se est&aacute; totalmente de acuerdo con la afirmaci&oacute;n). El resto de valores grad&uacute;an estos dos extremos. Se&ntilde;ale el valor m&aacute;s apropiado en cada caso.</li></ul>"
     contact="Si tiene alguna duda, no dude en contactar con nosotros (jcnaranjov@unal.edu.co; teléfono: <strong>+57 6 8879300 ext. 50415 </strong>)"
     thanks = "Gracias por participar"
     instrument_header.save()
@@ -716,8 +744,8 @@ def insert_data(apps, schema_editor):
 
     # We add the items to the list of items in order to add those items to the instrument easily
     # Se comentan estas dos para probar que el servicio funciona
-    #itemsList.append(itemRoles1)
-    #itemsList.append(itemRoles2)
+    itemsList.append(itemRoles1)
+    itemsList.append(itemRoles2)
     itemsList.append(itemRoles3)
     itemsList.append(itemRoles4)
     itemsList.append(itemRoles5)
@@ -801,16 +829,13 @@ def insert_data(apps, schema_editor):
 
 
     # Se configura un survey personalizado
-    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, resulting_URL="",max_surveys=5,used_surveys=0)
+    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, max_surveys=5,used_surveys=0)
     config_survey.save()
 
     # Se crea un survey personalizado para el cliente
-    customized_instrument= Customized_instrument (config_survey=config_survey, client=clientTest,num_completed_responses=0,custom_contact_info=contact, custom_user_instructions=user_instructions, custom_thanks="Gracias por participar, hasta pronto. ")
+    customized_instrument= Customized_instrument (config_survey=config_survey,custom_contact_info=contact, access_code="12345", prefix="C1", custom_user_instructions=user_instructions, custom_thanks="Gracias por participar, hasta pronto. ")
     customized_instrument.save()
 
-    # Se crean un survey para el cliente de prueba para hacer pruebas
-    survey_by_client = Surveys_by_client(client=clientTest, company=companyTest, acces_code="12345",config_survey=config_survey)
-    survey_by_client.save()
 
 
 

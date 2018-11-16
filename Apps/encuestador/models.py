@@ -138,7 +138,7 @@ class Company(models.Model):
 
 class Client(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    client_logo = models.CharField(max_length=100,default=None, null=True, blank=True)
+    client_logo = models.CharField(max_length=100, default=None, null=True, blank=True)
     contact = models.CharField(max_length=50)
     client_company_name = models.CharField(max_length=100)
     constitution_year = models.IntegerField()
@@ -152,16 +152,20 @@ class Client(models.Model):
 class Config_surveys_by_clients(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     instrument_header = models.ForeignKey(Instrument_header, on_delete=models.CASCADE)
-    resulting_URL = models.URLField(default=None, null=True, blank=True)
+    # resulting_URL = models.URLField(default=None, null=True, blank=True)
     max_surveys= models.IntegerField(default=None, null=True, blank=True)
     used_surveys=  models.IntegerField(default=0)
-    JSON_instrument_file = models.BinaryField(default=None, null=True, blank=True)
+    #JSON_instrument_file = models.BinaryField(default=None, null=True, blank=True)
+    survey_conf_desc = models.TextField(default=None, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 class Customized_instrument(models.Model):
     config_survey= models.ForeignKey(Config_surveys_by_clients, on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    num_completed_responses = models.IntegerField(default=0)
-    num_partial_responses = models.IntegerField(default=0)
+    # Se quitan campos que ya estaban en config_survey
+    # client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    # num_completed_responses = models.IntegerField(default=0)
+    # num_partial_responses = models.IntegerField(default=0)
 
     # None of these fields are mandatory
     custom_general_description = models.TextField(default=None, null=True, blank=True)
@@ -170,11 +174,13 @@ class Customized_instrument(models.Model):
     custom_user_instructions = models.TextField(default=None, null=True, blank=True)
     custom_contact_info=models.TextField(default=None, null=True, blank=True)
     custom_thanks=models.TextField(default=None, null=True, blank=True)
+    access_code = models.CharField(max_length=50,default=None)
+    prefix= models.CharField(max_length=6,default=None)
 
 class Surveys_by_client(models.Model):
     config_survey= models.ForeignKey(Config_surveys_by_clients, on_delete=models.CASCADE)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    # company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    # client = models.ForeignKey(Client, on_delete=models.CASCADE)
     acces_code = models.CharField(max_length=50)
     completed = models.BooleanField(default=False)
     #participant_response_header= models.ForeignKey(Participant_response_header, on_delete=models.CASCADE, default=None, null=True, blank=True)
@@ -186,8 +192,8 @@ class Participant_response_header(models.Model):
     is_complete = models.BooleanField(default=None)
     comments = models.TextField(default=None, null=True, blank=True)
     is_directive =  models.BooleanField()
-    position = models.IntegerField(default=None, null=True, blank=True)
-    area = models.IntegerField()
+    area = models.ForeignKey(Trans_parametric_table, related_name="area", on_delete=models.SET_NULL,
+                                  default=None, null=True, blank=True)
 
 
 class Items_respon_by_participants(models.Model):
@@ -211,3 +217,13 @@ class Roles_by_user(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=50)
+
+class Item_classification_structure (models.Model):
+    dimension = models.ForeignKey(ItemClassification, related_name="itemsClass_Dimension", on_delete=models.CASCADE,
+                                  default=None)
+    category = models.ForeignKey(ItemClassification, related_name="itemsClass_Category", on_delete=models.CASCADE,
+                                 default=None)
+    component = models.ForeignKey(ItemClassification, related_name="itemsClass_Component", on_delete=models.CASCADE,
+                                  default=None, null=True, blank=True)
+
+

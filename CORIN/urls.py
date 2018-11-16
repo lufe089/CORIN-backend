@@ -56,9 +56,14 @@ router.register(r'surveysByClient', views.SurveysByClientViewSet)
 urlpatterns = [
     #url(r'^', include(router.urls)),
     path('admin/', admin.site.urls),
-    url(r'^api/', include((router.urls, 'encuestador'))),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^averageFilters/$', views.ResponsesView.averageFilters),
+    url(r'^clients-and-survey-conf/$', views.ResponsesView.getClientAndConfiguration),
+    url(r'^areas/$', views.ResponsesView.get_areas),
+    url(r'^consult-custom-inst/$', views.ResponsesView.getCustomizedInstrument),
+    url(r'^consult-responses/$', views.ResponsesView.getParticipantResponsesToDownload),
+    url(r'^api/', include((router.urls, 'encuestador')))
 ]
 
 
+urlpatterns += router.urls
