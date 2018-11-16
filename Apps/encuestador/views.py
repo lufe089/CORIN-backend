@@ -20,6 +20,7 @@ from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from django.db.models import F,Value
+from django.db.models.functions import Concat
 from rest_framework.response import Response
 import logging
 
@@ -188,25 +189,23 @@ class ResponsesView(APIView):
             is_active=True).values('new_item__id')
         queryset = Trans_item.objects.filter(item__in=activeItemsId).values().filter(i18n_code=LanguageChoice.ES.name)
 
-    @api_view(['GET'])
+    @api_view(['POST'])
     # @renderer_classes((JSONRenderer,))
     def averageFilters(request, format=None):
         """
         A view that returns the count of active users in JSON.
         """
+        idClient = request.data['idClient']
+
         # FIXME
         responseHeadersByCompany = Participant_response_header.objects.filter(
-            customized_instrument__config_survey__client__id=1).values('id')
+            customized_instrument__config_survey__client__id=idClient).values('id')
 
         # Dimensions
         dimensions_average = Items_respon_by_participants.objects.filter(
-            participant_response_header__id__in=responseHeadersByCompany).values("item__dimension_id").annotate(name=F('item__dimension__name'), category=F('item__category__name'),idElement=F('item__dimension_id'),average=Avg('answer_numeric'), n=Count('participant_response_header',distinct=True)).order_by('-average')
-
-
-        # Traer todas las dimensiones y sus categorias asociads
-        dimensions_and_categories = Item_classification_structure.objects.values("dimension","category").distinct()
-        print("Dimensions and categories")
-        print(dimensions_and_categories)
+            participant_response_header__id__in=responseHeadersByCompany).values("item__dimension_id").annotate(
+            name=F('item__dimension__name'), category=F('item__category__name'), idElement=F('item__dimension_id'),
+            average=Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)).order_by('item__category__name','-average')
 
         # Components
         # Respuestas de la compañía donde el componente no sea null
@@ -258,12 +257,14 @@ class ResponsesView(APIView):
 
         # Usa el atributo f para renombrar el valor de un campo. Esto lo hago para que en la tabla de la vista todos se llamen igual( catogiras, dimensions,components) y puedan dibujar mas facil. Tiene que tener al menos un campo value para que funcione
         categories_average = Items_respon_by_participants.objects.filter(
-            participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('-average')
+            participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('name')
 
         categories_average_by_directives= Items_respon_by_participants.objects.filter(
-            participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__is_directive=1).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True) ).order_by('-average')
+            participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__is_directive=1).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('item__category__name')
 
         categories_labels = ItemClassification.objects.filter(type=ClassificationChoice.CATEGORY.value).values('name').annotate(key=F('name')).order_by('name')
+        print("Category labeles")
+        print(categories_labels)
         """ category_names_list=[]
         for category_name in categories_labels:
             category_names_list.append(category_name['name'])"""
@@ -277,8 +278,7 @@ class ResponsesView(APIView):
         categories_average_by_no_directives = Items_respon_by_participants.objects.filter(
                 participant_response_header__id__in=responseHeadersByCompany).filter(
                 participant_response_header__is_directive=0).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),
-                average=Avg('answer_numeric'), n=Count('participant_response_header',distinct=True)).order_by('-average')
-
+                average=Avg('answer_numeric'), n=Count('participant_response_header',distinct=True)).order_by('item__category__name')
         # Overall average
         overall_average_count = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'), n= Count('participant_response_header',distinct=True))
@@ -306,8 +306,9 @@ class ResponsesView(APIView):
 
         # FIXME poner el filtro de la compania
         # max_survey=Config_surveys_by_clients.objects.filter(client=OuterRef('pk'))),
+        # Los ultimos dos campos los agregue para que se puedan mostrar facilmente en una lista desplegable, pues esas listas esperan el id con el campo value y el texto con el campo text
         clients_with_configuration= Config_surveys_by_clients.objects.all().filter(client__id__in=ids_clients).values('client__id', 'client__client_company_name', 'client__company_id','client__constitution_year', 'client__number_employees',
-                  'client__is_corporate_group', 'client__is_family_company',"max_surveys","used_surveys").annotate(config_id=F('id'))
+                  'client__is_corporate_group', 'client__is_family_company',"max_surveys","used_surveys").annotate(config_id=F('id'),text=F('client__client_company_name'), value=F('client__id'))
         #clients_without_configuration= Client.objects.all().annotate(max_surveys=Value('0'),used_surveys=Value('0'))
 
         # Se consultan los id de los que si tienen configuracion para excluirlos de la consulta directa de la tabla de clientes y así hacer que la union no tenga repetidos
@@ -315,10 +316,11 @@ class ResponsesView(APIView):
 
         # Se hace la resta en los campos que se anotan solo como truco para que los valores sean zero pues no encontre como inicializarlos realmente en cero
         clients_without_configuration= Client.objects.exclude(id__in=clients_with_configuration_ids).filter(id__in=ids_clients).values('id', 'client_company_name', 'company_id','constitution_year', 'number_employees',
-                  'is_corporate_group', 'is_family_company').annotate(max_surveys=Count('id')-Count('id'),used_surveys=Count('id')-Count('id'),config_id=Count('id')-Count('id')).order_by('-updated_at')
+                  'is_corporate_group', 'is_family_company').annotate(max_surveys=Count('id')-Count('id'),used_surveys=Count('id')-Count('id'),config_id=Count('id')-Count('id'), text=F('client_company_name'),value=F('id')).order_by('-updated_at')
 
         #FIXME - Tratar de agregar los campos que faltan manualmente antes de retornar los datos
         all_clients= clients_without_configuration.union(clients_with_configuration)
+        print(all_clients)
         return Response(all_clients)
         # return Response ()
 

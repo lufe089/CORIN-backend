@@ -211,7 +211,7 @@ def insert_data(apps, schema_editor):
     comp_retribucion.save()
 
     # Parametric master
-    """
+
     likert_one_to_nine_master =Parametric_master(name="1-to-9 Likert",description="Escala likert del 1 al 9")
     likert_one_to_nine_master.save()
 
@@ -235,7 +235,7 @@ def insert_data(apps, schema_editor):
     likert_one_to_nine_7.save()
     likert_one_to_nine_8.save()
     likert_one_to_nine_9.save()
-    """
+
 
     # Agregar tabla parametrica para las areas
     areas = Parametric_master(name="areas", description="Areas de trabajo del participante")
