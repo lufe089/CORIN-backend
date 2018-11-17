@@ -43,7 +43,7 @@ prefix=''
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    url(r'^', include(router.urls)),
+    #url(r'^', include(router.urls)),
     path('admin/', admin.site.urls),
     url(r'^'+prefix+'/api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^'+prefix+'/averageFilters/$', views.ResponsesView.averageFilters),
