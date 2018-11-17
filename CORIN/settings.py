@@ -183,7 +183,7 @@ SECRET_KEY = '7ens10k(@3n)$)7kqktsbvvc#8(%vxphts4n4gzy%tk2b5-ud='
 DEBUG = False
 TEMPLATE_DEBUG= True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'zalonore.pythonanywhere.com/api/', 'tintotic.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'zalonore.pythonanywhere.com/api/','zalonore.pythonanywhere.com', 'tintotic.com']
 
 CORS_ORIGIN_ALLOW_ALL=True
 # Application definition
