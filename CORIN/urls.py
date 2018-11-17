@@ -50,6 +50,7 @@ urlpatterns = [
     url(r'^'+prefix+'/areas/$', views.ResponsesView.get_areas),
     url(r'^'+prefix+'/consult-custom-inst/$', views.ResponsesView.getCustomizedInstrument),
     url(r'^'+prefix+'/consult-responses/$', views.ResponsesView.getParticipantResponsesToDownload),
+    url(r'^'+prefix+'/is-allowed-save/$', views.ResponsesView.isAllowedSaveResponses),
     url(r'^'+prefix+'/', include((router.urls, 'encuestador')))
 ]
 

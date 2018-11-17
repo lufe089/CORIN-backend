@@ -258,10 +258,31 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
         print ("Entre al create del responses del instrument")
         responses_list_data = validated_data.pop('responsesList')
         print(validated_data)
-        participant_response_header = Participant_response_header.objects.create(**validated_data)
-        print ("Guarde el participant response")
-        for response in responses_list_data:
-            Items_respon_by_participants.objects.create(participant_response_header=participant_response_header,**response)
-        print ("Guarde las respuestas de los participantes")
-        print (participant_response_header.responsesList)
-        return participant_response_header
+
+        # Se consultan cuando surveys tiene aun disponibles el cliente
+        try:
+            config_survey = Customized_instrument.objects.get(
+                id=validated_data['customized_instrument_id']).config_survey
+            if config_survey.used_surveys < config_survey.max_surveys:
+                print('Hay espacio')
+                participant_response_header=Participant_response_header.objects.create(**validated_data)
+                print("Guarde el participant response")
+                for response in responses_list_data:
+                    Items_respon_by_participants.objects.create(participant_response_header=participant_response_header,
+                                                                **response)
+                print("Guarde las respuestas de los participantes")
+                print(participant_response_header.responsesList)
+
+                print("Se actualiza la configuración del survey para indicar que se guardo una respuesta nueva")
+                config_survey.used_surveys= config_survey.used_surveys + 1
+                config_survey.save()
+                return participant_response_header
+            else:
+                # Se retorna algun error pq no se puede guardar las respuestas de los participantes
+                print("ERROR: No se guardan las respuestas no hay espacio, y el front end no controlo el error ")
+                 # Esto genera una excepcion que psoiblemente diga algo de email o algo asi,
+                 # a este camino no deberia llegar , por eso voy a dejar q arroje la excepcion
+                return  {}
+        except:
+            return {'error': 'No space'}
+            return {}

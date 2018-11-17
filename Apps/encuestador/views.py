@@ -372,7 +372,7 @@ class ResponsesView(APIView):
 
     @api_view(['POST'])
     def getParticipantResponsesToDownload(request):
-        #print(request)
+
         idCompany = request.data['idCompany']
 
         # Todos los ids de los clientes asociados a la compania
@@ -390,6 +390,16 @@ class ResponsesView(APIView):
                                                                        pregunta_id=F('item__id')).order_by('item__id','participant_response_header__id')
         return Response(all_responses_by_participants)
 
+    @api_view(['POST'])
+    def isAllowedSaveResponses(request):
+        idCustomizedInstrument = request.data['idCustomizedInstrument']
+        config_survey = Customized_instrument.objects.get(
+            id=idCustomizedInstrument).config_survey
+        if config_survey.used_surveys < config_survey.max_surveys:
+            response = {'save': True}
+        else:
+            response = {'save': False}
+        return Response(response,status=status.HTTP_200_OK)
     """ Lo comento pq al fin no sirve0
     @api_view(['GET'])
     # @renderer_classes((JSONRenderer,))
