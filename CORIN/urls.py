@@ -38,7 +38,8 @@ router.register(r'average', views.AverageByClassifiers)
 router.register(r'participantsResponse', views.ParticipantResponseViewSet)
 router.register(r'surveysByClient', views.SurveysByClientViewSet)
 
-prefix='api'
+#prefix='api'
+prefix=''
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
