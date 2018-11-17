@@ -39,11 +39,11 @@ router.register(r'participantsResponse', views.ParticipantResponseViewSet)
 router.register(r'surveysByClient', views.SurveysByClientViewSet)
 
 #prefix='api'
-prefix='api'
+prefix=''
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    #url(r'^', include(router.urls)),
+    url(r'^', include(router.urls)),
     path('admin/', admin.site.urls),
     url(r'^'+prefix+'/api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^'+prefix+'/averageFilters/$', views.ResponsesView.averageFilters),
@@ -52,7 +52,7 @@ urlpatterns = [
     url(r'^'+prefix+'/consult-custom-inst/$', views.ResponsesView.getCustomizedInstrument),
     url(r'^'+prefix+'/consult-responses/$', views.ResponsesView.getParticipantResponsesToDownload),
     url(r'^'+prefix+'/is-allowed-save/$', views.ResponsesView.isAllowedSaveResponses),
-    url(r'^'+prefix+'/', include((router.urls, 'encuestador')))
+    url(r'^'+'api'+'/', include((router.urls, 'encuestador')))
 ]
 
 
