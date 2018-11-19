@@ -1,7 +1,7 @@
 dj-database-url==0.5.0
 dj-static==0.0.6
-Django == 2.0.4
-
+#Django == 2.0.4
+Django>=2.0.8
 # Cross request requests
 django-cors-headers
 
@@ -22,8 +22,8 @@ gunicorn
 whitenoise
 
 # Postgress
-psycopg2-binary
+# psycopg2-binary
 
 #Mysql database connection
-cymysql
-django-cymysql
+#cymysql
+#django-cymysql
