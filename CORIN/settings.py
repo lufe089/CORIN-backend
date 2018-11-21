@@ -29,7 +29,7 @@ SECRET_KEY = '7ens10k(@3n)$)7kqktsbvvc#8(%vxphts4n4gzy%tk2b5-ud='
 DEBUG = False
 
 # Postgress compatibility
-ALLOWED_HOSTS = ['sleepy-reaches-23096.herokuapp.com', '127.0.0.1']
+ALLOWED_HOSTS = ['salty-headland-40370.herokuapp.com', '127.0.0.1']
 CORS_ORIGIN_ALLOW_ALL=True
 
 # Application definition
