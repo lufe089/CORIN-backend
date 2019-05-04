@@ -191,6 +191,22 @@ class ResponsesView(APIView):
 
     @api_view(['POST'])
     # @renderer_classes((JSONRenderer,))
+    def loginByAccessCode(request, format=None):
+        """  Retorna un customized instrument si el prefijo y codigo enviado por el usuario existe y retorna
+        null en caso contrario """
+        access_code = request.data['access_code']
+        prefix= request.data['prefix']
+        try:
+            customized_instrument_to_client = Customized_instrument.objects.get(prefix=prefix, access_code=access_code)
+            # Si existe se retorna directamente
+            serializer = CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': request})
+            return Response(serializer.data)
+        except Customized_instrument.DoesNotExist:
+                return Response({'error': 'no_customized_instrument'}, status=status.HTTP_200_OK)
+                # return Response( CustomizedInstrumentSerializer(customized_instrument_to_client,context={'request': request}).data,status = status.HTTP_200_OK)
+
+    @api_view(['POST'])
+    # @renderer_classes((JSONRenderer,))
     def averageFilters(request, format=None):
         """
         A view that returns the count of active users in JSON.

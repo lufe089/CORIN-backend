@@ -51,6 +51,7 @@ urlpatterns = [
     url(r'^'+prefix+'/consult-custom-inst/$', views.ResponsesView.getCustomizedInstrument),
     url(r'^'+prefix+'/consult-responses/$', views.ResponsesView.getParticipantResponsesToDownload),
     url(r'^'+prefix+'/is-allowed-save/$', views.ResponsesView.isAllowedSaveResponses),
+    url(r'^'+prefix+'/login-code/$', views.ResponsesView.loginByAccessCode),
     url(r'^'+'api'+'/', include((router.urls, 'encuestador')))
 ]
 
