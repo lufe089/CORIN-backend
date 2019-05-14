@@ -243,9 +243,9 @@ REST_FRAMEWORK = {
 }"""
 
 REST_FRAMEWORK = {
-    # Cuál es el metodo de autenticacion x defecto
+    # Define el metodo de autenticacion x defecto. El del JWT fue personalizado para las necesidades de esta app
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'Apps.encuestador.backends.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',

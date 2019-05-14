@@ -1,3 +1,5 @@
+from calendar import timegm, calendar
+
 from Apps.encuestador.models import ItemClassification
 from Apps.encuestador.models import Item
 from Apps.encuestador.models import Instrument_header
@@ -343,13 +345,28 @@ class LoginByCodeSerializer(serializers.Serializer):
         Generates a JSON Web Token that stores the customized_instrument_id and has an expiry
         date set to 60 days into the future.
         """
-        dt = datetime.now() + timedelta(days=60)
+        #dt = datetime.now() + timedelta(days=60)
+        # exp_time = datetime.now() + timedelta(days=60)
+        now = timegm(datetime.utcnow().utctimetuple())
 
-        token = jwt.encode({
+        future = datetime.now() + timedelta(days=60)
+        future_int=timegm(future.timetuple())
+        # future_int = timegm(future.timetuple())
+        # now_int = timegm(now.timetuple())
+        print("future " + str(future))
+        print("future number" + str(timegm(future.timetuple())))
+
+        exp_time =  timegm(datetime.utcnow().utctimetuple())
+        payload =  {
             'customized_instrument_id': customized_instrument.id,
             'config_survey_id':customized_instrument.config_survey.id,
             'mode': 'byAccessCode', #Indica que la autenticación fue por codigo de acceso
-            'exp': int(dt.strftime('%S')) # Si sale un problema de formato hay que poner s mayúscula
-        }, settings.SECRET_KEY, algorithm='HS256')
+            'exp': future_int
+        }
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
+        if payload['exp'] < now:
+            print("ya expiro")
+        else:
+            print("no expero")
         return token.decode('utf-8')

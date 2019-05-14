@@ -202,6 +202,16 @@ class Items_respon_by_participants(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     answer_numeric = models.IntegerField()
 
+class Item_classification_structure (models.Model):
+    dimension = models.ForeignKey(ItemClassification, related_name="itemsClass_Dimension", on_delete=models.CASCADE,
+                                  default=None)
+    category = models.ForeignKey(ItemClassification, related_name="itemsClass_Category", on_delete=models.CASCADE,
+                                 default=None)
+    component = models.ForeignKey(ItemClassification, related_name="itemsClass_Component", on_delete=models.CASCADE,
+                                  default=None, null=True, blank=True)
+
+
+# Clases asociadas a la autenticacion
 class User (models.Model):
     username = models.CharField(max_length=50)
     password_hashed = models.CharField(max_length=30)
@@ -218,13 +228,3 @@ class Roles_by_user(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=50)
-
-class Item_classification_structure (models.Model):
-    dimension = models.ForeignKey(ItemClassification, related_name="itemsClass_Dimension", on_delete=models.CASCADE,
-                                  default=None)
-    category = models.ForeignKey(ItemClassification, related_name="itemsClass_Category", on_delete=models.CASCADE,
-                                 default=None)
-    component = models.ForeignKey(ItemClassification, related_name="itemsClass_Component", on_delete=models.CASCADE,
-                                  default=None, null=True, blank=True)
-
-
