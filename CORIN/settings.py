@@ -194,6 +194,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken', # encargado de los token de login
     'corsheaders',
 	'Apps.encuestador',
 ]
@@ -230,6 +231,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'CORIN.wsgi.application'
 
+"""
+REST_FRAMEWORK = {
+    # Cuál es el metodo de autenticacion x defecto
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ), # Indica que se tiene que estar autenticado para acceder a la api
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}"""
+
+REST_FRAMEWORK = {
+    # Cuál es el metodo de autenticacion x defecto
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases

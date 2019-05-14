@@ -18,6 +18,8 @@ from django.urls import path
 from django.conf.urls import url, include
 
 from rest_framework import routers
+from rest_framework.authtoken import views as views_rest
+from rest_framework_simplejwt import views as jwt_views
 from Apps.encuestador import views
 
 router = routers.DefaultRouter()
@@ -44,6 +46,13 @@ prefix='api'
 urlpatterns = [
     url(r'^', include(router.urls)),
     path('admin/', admin.site.urls),
+    path('api-token-auth/',views_rest.obtain_auth_token,name="api-token-auth" ),
+    # Token auth URLS
+    path('api/token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', jwt_views.TokenVerifyView.as_view(), name='token_verify'),
+
+
     url(r'^'+prefix+'/api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^'+prefix+'/averageFilters/$', views.ResponsesView.averageFilters),
     url(r'^'+prefix+'/clients-and-survey-conf/$', views.ResponsesView.getClientAndConfiguration),
@@ -52,6 +61,7 @@ urlpatterns = [
     url(r'^'+prefix+'/consult-responses/$', views.ResponsesView.getParticipantResponsesToDownload),
     url(r'^'+prefix+'/is-allowed-save/$', views.ResponsesView.isAllowedSaveResponses),
     url(r'^'+prefix+'/login-code/$', views.ResponsesView.loginByAccessCode),
+    #Rutas propias de los serializadores y los viewsets
     url(r'^'+'api'+'/', include((router.urls, 'encuestador')))
 ]
 

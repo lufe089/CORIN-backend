@@ -1,51 +1,44 @@
-from django.shortcuts import render
-
-from Apps.encuestador.models import Item
+from django.db.models import Avg,Count
+from django.db.models import F
+from django.conf import settings
+from rest_framework import viewsets
+from rest_framework.views import APIView
+import jwt
 from Apps.encuestador.models import ClassificationChoice
-from Apps.encuestador.models import ItemClassification
-from Apps.encuestador.models import Item
+from Apps.encuestador.models import Company, Client,Config_surveys_by_clients
+from Apps.encuestador.models import Customized_instrument
 from Apps.encuestador.models import Instrument_header
 from Apps.encuestador.models import Instrument_structure_history
+from Apps.encuestador.models import Item
+from Apps.encuestador.models import ItemClassification
 from Apps.encuestador.models import Items_respon_by_participants
-from Apps.encuestador.models import Customized_instrument
-from Apps.encuestador.models import Trans_instrument_header
 from Apps.encuestador.models import LanguageChoice
-from Apps.encuestador.models import Trans_item
 from Apps.encuestador.models import Participant_response_header
-from Apps.encuestador.models import Company, Client,Config_surveys_by_clients
 from Apps.encuestador.models import Response_format
 from Apps.encuestador.models import Surveys_by_client
-from Apps.encuestador.models import Trans_parametric_table,Parametric_master,Item_classification_structure
-from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
-from rest_framework.views import APIView
-from django.db.models import F,Value
-from django.db.models.functions import Concat
-from rest_framework.response import Response
-import logging
-
-
-from Apps.encuestador.serializers import CompanySerializer,ConfigSurveysByClientsSerializer
-from Apps.encuestador.serializers import ResponseFormatSerializer
+from Apps.encuestador.models import Trans_instrument_header
+from Apps.encuestador.models import Trans_item
+from Apps.encuestador.models import Trans_parametric_table,Parametric_master
+from Apps.encuestador.serializers import AverageResponsesSerializer
 from Apps.encuestador.serializers import ClientSerializer
+from Apps.encuestador.serializers import CompanySerializer,ConfigSurveysByClientsSerializer
+from Apps.encuestador.serializers import CustomizedInstrumentSerializer
+from Apps.encuestador.serializers import ItemSerializer
+from Apps.encuestador.serializers import ParticipantResponseHeaderSerializer
+from Apps.encuestador.serializers import ResponseFormatSerializer
+from Apps.encuestador.serializers import SimpleItemClassificationSerializer
+from Apps.encuestador.serializers import SurveysByClientSerializer
 from Apps.encuestador.serializers import TranslatedInstrumentSerializer
 from Apps.encuestador.serializers import TranslatedItemSerializer
-from Apps.encuestador.serializers import ItemSerializer
-from Apps.encuestador.serializers import SimpleItemClassificationSerializer
-from Apps.encuestador.serializers import CustomizedInstrumentSerializer
-from Apps.encuestador.serializers import ParticipantResponseHeaderSerializer
-from Apps.encuestador.serializers import SurveysByClientSerializer
-from Apps.encuestador.serializers import AverageResponsesSerializer
-from django.db.models import Avg,Count
+
 """
 """
 
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
-
-from rest_framework.decorators import action
-
+from rest_framework.permissions import AllowAny
 
 # Create your views here.
 
@@ -73,6 +66,7 @@ def consultAreas():
         return False
 
 class CustomizedInstrumentViewSet (viewsets.ModelViewSet):
+    # list, create, retrieve, update, partial update and destroy
     serializer_class = CustomizedInstrumentSerializer
     queryset = Customized_instrument.objects.all()
 
@@ -190,20 +184,41 @@ class ResponsesView(APIView):
         queryset = Trans_item.objects.filter(item__in=activeItemsId).values().filter(i18n_code=LanguageChoice.ES.name)
 
     @api_view(['POST'])
+    @permission_classes([AllowAny, ])
     # @renderer_classes((JSONRenderer,))
     def loginByAccessCode(request, format=None):
         """  Retorna un customized instrument si el prefijo y codigo enviado por el usuario existe y retorna
         null en caso contrario """
-        access_code = request.data['access_code']
-        prefix= request.data['prefix']
         try:
+            access_code = request.data['access_code']
+            prefix= request.data['prefix']
             customized_instrument_to_client = Customized_instrument.objects.get(prefix=prefix, access_code=access_code)
-            # Si existe se retorna directamente
-            serializer = CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': request})
-            return Response(serializer.data)
-        except Customized_instrument.DoesNotExist:
-                return Response({'error': 'no_customized_instrument'}, status=status.HTTP_200_OK)
-                # return Response( CustomizedInstrumentSerializer(customized_instrument_to_client,context={'request': request}).data,status = status.HTTP_200_OK)
+            try:
+                # Si existe se serializa el objeto para retornarlo en la peticion
+                serializer = CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': request})
+                # asi se retornan los datos del serializador
+
+                # se construye el token
+                #payload = jwt._payload_handler(customized_instrument_to_client)
+                # payload = serializer.data
+                print ("payload data "+ str(serializer.data))
+                payload={}
+                payload['prueba']="algo"
+                #print("payload data" + payload)
+                token = jwt.encode(payload, settings.SECRET_KEY)
+                details = payload
+                details['token'] = token
+                #user_logged_in.send(sender=user.__class__,
+                                    #request=request, user=
+
+                #print( "details to print" + details)
+                return Response(details)
+            except Customized_instrument.DoesNotExist:
+               return Response({'error': 'no_customized_instrument'}, status=status.HTTP_200_OK)
+               # return Response( CustomizedInstrumentSerializer(customized_instrument_to_client,context={'request': request}).data,status = status.HTTP_200_OK)
+        except KeyError:
+            """ Se retorna 200 aunque podría 403 por el manejo que le estoy dando a los errores en la vista"""
+            return Response({'error': 'ingrese codigo de acceso y prefijo'}, status=status.HTTP_200_OK)
 
     @api_view(['POST'])
     # @renderer_classes((JSONRenderer,))
