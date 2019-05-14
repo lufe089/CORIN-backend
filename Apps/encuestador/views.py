@@ -28,8 +28,9 @@ from Apps.encuestador.serializers import ParticipantResponseHeaderSerializer
 from Apps.encuestador.serializers import ResponseFormatSerializer
 from Apps.encuestador.serializers import SimpleItemClassificationSerializer
 from Apps.encuestador.serializers import SurveysByClientSerializer
-from Apps.encuestador.serializers import TranslatedInstrumentSerializer
 from Apps.encuestador.serializers import TranslatedItemSerializer
+from Apps.encuestador.serializers import TranslatedInstrumentSerializer
+from Apps.encuestador.serializers import LoginByCodeSerializer
 
 """
 """
@@ -186,7 +187,8 @@ class ResponsesView(APIView):
     @api_view(['POST'])
     @permission_classes([AllowAny, ])
     # @renderer_classes((JSONRenderer,))
-    def loginByAccessCode(request, format=None):
+    #FIXME remove
+    def loginByAccessCode2(request, format=None):
         """  Retorna un customized instrument si el prefijo y codigo enviado por el usuario existe y retorna
         null en caso contrario """
         try:
@@ -451,7 +453,32 @@ class ResponsesView(APIView):
 
     """
 
+class LoginAPIViewByAccessCode(APIView):
+    permission_classes = (AllowAny,)
+    #renderer_classes = (UserJSONRenderer,)
+    serializer_class = LoginByCodeSerializer
+    """
+        Esta vista controla las peticiones de autenticacion cuando se hace por código de acceso y prefijo
+    """
 
+    def post(self, request):
+        """ Este codigo se ejecuta solo cuando se reciben peticiones POST"""
+
+        requestData = {}
+        serializer_context = {
+            'request': request,
+        }
+        requestData['access_code'] = request.data['access_code']
+        requestData['prefix'] = request.data['prefix']
+        # Notice here that we do not call `serializer.save()` like we did for
+        # the registration endpoint. This is because we don't  have
+        # anything to save. Instead, the `validate` method on our serializer
+        # handles everything we need.
+
+        serializer = self.serializer_class(data=requestData,context=serializer_context)
+        serializer.is_valid(raise_exception=True) # Retorna error de tipo 400
+        # Responde con los datos que ya incluye el token de autenticación que fue agregado x el serializador
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleItemClassificationSerializer

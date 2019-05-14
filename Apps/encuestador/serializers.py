@@ -15,8 +15,12 @@ from Apps.encuestador.models import Surveys_by_client,Trans_parametric_table
 from Apps.encuestador.models import LanguageChoice
 from rest_framework.views import APIView
 from rest_framework import serializers
+from django.conf import settings
+from datetime import datetime, timedelta
+
 from rest_framework.response import Response
 
+import jwt
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -127,10 +131,12 @@ class CustomizedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
         view_name='config_surveys_by_clients-detail'
     ) """
     config_survey = ConfigSurveysByClientsSerializer(many=False, read_only=True)
+    prefix = serializers.CharField(max_length=255, write_only=True)
+    access_code = serializers.CharField(max_length=255, write_only=True)
     config_survey_id = serializers.IntegerField()
     class Meta:
         model = Customized_instrument
-        fields = ('id','config_survey','config_survey_id','custom_user_instructions','custom_contact_info','custom_thanks','prefix','access_code')
+        fields = ('id','config_survey_id','config_survey','custom_user_instructions','custom_contact_info','custom_thanks','prefix','access_code')
 
 class SurveysByClientSerializer(serializers.HyperlinkedModelSerializer):
     config_survey = ConfigSurveysByClientsSerializer(many=False, read_only=False)
@@ -286,3 +292,64 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
         except:
             return {'error': 'No space'}
             return {}
+
+class LoginByCodeSerializer(serializers.Serializer):
+
+    # Estos campos aqui son super importanes pq si el serializador no viene de un modelo entonces solo va entender lo que este aqui definido.
+    access_code = serializers.CharField(max_length=255,write_only=True)
+    prefix = serializers.CharField(max_length=255,write_only=True)
+    customized_instrument = CustomizedInstrumentSerializer(many=False, read_only=True, required=False)
+    token = serializers.CharField(max_length=255, read_only=True)
+
+    def validate(self, data):
+        # The `validate` method is where we make sure that the current
+        # instance of `LoginByCodeSerializer` has "valid". In the case of logging a
+        # user in, this means validating that they've provided an access_code
+        # and prfeix and that this combination matches one of the surveys in
+        # our database.
+        access_code = data.get('access_code', None)
+        prefix = data.get('prefix', None)
+
+        # Raise an exception if an
+        # email is not provided.
+        if access_code is None:
+            raise serializers.ValidationError(
+                'El código de acceso es requerido para iniciar la encuesta.'
+            )
+
+        # Raise an exception if a
+        # password is not provided.
+        if prefix is None:
+            raise serializers.ValidationError(
+                'El prefijo es requerido para iniciar la encuesta'
+            )
+        try:
+            customized_instrument_to_client = Customized_instrument.objects.get(prefix=prefix,
+                                                                                    access_code=access_code)
+
+            #Estos datos estaran disponibles en views en el atributo validated_data
+            data= {
+                'customized_instrument': CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': None}).data,  #FIXME para retirar las credenciales de acceso
+                'token': self._generate_jwt_token(customized_instrument_to_client),
+            }
+            return data
+        except Customized_instrument.DoesNotExist:
+            raise serializers.ValidationError(
+                'No existe ninguna encuesta para los valores de inicio proporcionados.'
+            )
+
+    def _generate_jwt_token(self, customized_instrument):
+        """
+        Generates a JSON Web Token that stores the customized_instrument_id and has an expiry
+        date set to 60 days into the future.
+        """
+        dt = datetime.now() + timedelta(days=60)
+
+        token = jwt.encode({
+            'customized_instrument_id': customized_instrument.id,
+            'config_survey_id':customized_instrument.config_survey.id,
+            'mode': 'byAccessCode', #Indica que la autenticación fue por codigo de acceso
+            'exp': int(dt.strftime('%S')) # Si sale un problema de formato hay que poner s mayúscula
+        }, settings.SECRET_KEY, algorithm='HS256')
+
+        return token.decode('utf-8')
