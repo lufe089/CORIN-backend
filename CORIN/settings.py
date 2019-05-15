@@ -247,9 +247,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'Apps.encuestador.backends.JWTAuthentication',
     ],
+    # Esta linea se debe comentar si no se quiere que se requiera autenticacion para ver la informacion
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    ),
+    )
 }
 
 # Database
@@ -284,7 +285,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+# Personalizacion del modelo ojo se tiene que llamar directamente asi. Nombre de la apicación + nombre de la clase sin otros paquetes o nombres extras
+AUTH_USER_MODEL = 'encuestador.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/

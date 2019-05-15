@@ -842,7 +842,7 @@ def insert_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('encuestador', '0001_initial'),
+       ('encuestador', '0001_initial'),
     ]
 
     operations = [

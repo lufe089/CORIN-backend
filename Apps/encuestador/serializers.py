@@ -1,6 +1,6 @@
 from calendar import timegm, calendar
 
-from Apps.encuestador.models import ItemClassification
+from Apps.encuestador.models import ItemClassification, User
 from Apps.encuestador.models import Item
 from Apps.encuestador.models import Instrument_header
 from Apps.encuestador.models import Response_format
@@ -17,12 +17,18 @@ from Apps.encuestador.models import Surveys_by_client,Trans_parametric_table
 from Apps.encuestador.models import LanguageChoice
 from rest_framework.views import APIView
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 from datetime import datetime, timedelta
 
 from rest_framework.response import Response
 
 import jwt
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email','id')
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -133,8 +139,8 @@ class CustomizedInstrumentSerializer(serializers.HyperlinkedModelSerializer):
         view_name='config_surveys_by_clients-detail'
     ) """
     config_survey = ConfigSurveysByClientsSerializer(many=False, read_only=True)
-    prefix = serializers.CharField(max_length=255, write_only=True)
-    access_code = serializers.CharField(max_length=255, write_only=True)
+    prefix = serializers.CharField(max_length=255)
+    access_code = serializers.CharField(max_length=255)
     config_survey_id = serializers.IntegerField()
     class Meta:
         model = Customized_instrument
@@ -302,6 +308,7 @@ class LoginByCodeSerializer(serializers.Serializer):
     prefix = serializers.CharField(max_length=255,write_only=True)
     customized_instrument = CustomizedInstrumentSerializer(many=False, read_only=True, required=False)
     token = serializers.CharField(max_length=255, read_only=True)
+    user = UserSerializer(many=False, required=False)
 
     def validate(self, data):
         # The `validate` method is where we make sure that the current
@@ -327,13 +334,13 @@ class LoginByCodeSerializer(serializers.Serializer):
             )
         try:
             customized_instrument_to_client = Customized_instrument.objects.get(prefix=prefix,
-                                                                                    access_code=access_code)
+                                                                    access_code=access_code)
 
-            #Estos datos estaran disponibles en views en el atributo validated_data
             data= {
                 'customized_instrument': CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': None}).data,  #FIXME para retirar las credenciales de acceso
-                'token': self._generate_jwt_token(customized_instrument_to_client),
+                'token': self._generate_jwt_token(customized_instrument_to_client)
             }
+            #print("Data que retorna el serializador de login" + str(data['customized_instrument']) + " "+ str(data['user']) + str(data['token']))
             return data
         except Customized_instrument.DoesNotExist:
             raise serializers.ValidationError(
@@ -349,7 +356,7 @@ class LoginByCodeSerializer(serializers.Serializer):
         # exp_time = datetime.now() + timedelta(days=60)
         now = timegm(datetime.utcnow().utctimetuple())
 
-        future = datetime.now() + timedelta(days=60)
+        future = datetime.now() - timedelta(days=60)
         future_int=timegm(future.timetuple())
         # future_int = timegm(future.timetuple())
         # now_int = timegm(now.timetuple())
@@ -366,7 +373,5 @@ class LoginByCodeSerializer(serializers.Serializer):
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
         if payload['exp'] < now:
-            print("ya expiro")
-        else:
-            print("no expero")
+            print("INFO: El token expiró desde su creación. ERROR")
         return token.decode('utf-8')

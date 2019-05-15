@@ -82,12 +82,14 @@ class JWTAuthentication(authentication.BaseAuthentication):
         #try:
         print("token")
         print(token)
-        payload = jwt.decode(token, settings.SECRET_KEY)
-        print(payload)
-        #except Exception as e:
-            #msg = 'Autenticacion incorrecta. Hubo un error en la decodificacion del token de seguridad'
-            #print(e)
-            #raise exceptions.AuthenticationFailed(msg)
+        # Logica para controlar si el token expiró
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY)
+            print("payload")
+            print(payload)
+        except Exception as e:
+            msg = 'Autenticacion incorrecta. La sesión expiró. Autentíquese nuevamente'
+            raise exceptions.AuthenticationFailed(msg)
 
 
         #Esto se conecta con la parte de la serializacion  en las clases LoginByCodeSerializer y LoginSerializer
@@ -109,7 +111,11 @@ class JWTAuthentication(authentication.BaseAuthentication):
             try:
                 customized_instrument_to_client = Customized_instrument.objects.get(id=customized_instrument_id)
                 config_survey = Config_surveys_by_clients.objects.get(id=config_survey_id)
-                return (customized_instrument_to_client, token)
+                # Se crea un usuario dummy para usar las funciones de autenticación de django una vez que se esta seguro de
+                # que la infomacion que se esperaba se recupero correctamente
+                fake_user = User(email="test@test.com")
+                request.user = fake_user
+                return (fake_user, token)
             except Customized_instrument.DoesNotExist:
                 msg = 'Token inválido: Ninguna encuesta personalizado existe con el identificador enviado'
                 raise exceptions.AuthenticationFailed(msg)

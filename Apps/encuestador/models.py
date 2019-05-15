@@ -1,5 +1,7 @@
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.utils import timezone
+from django.contrib.auth.models import BaseUserManager
 from enum import Enum
 
 ##########################  ENUMS ##########################
@@ -18,7 +20,11 @@ class ResponseFormatType(Enum): # A subclass of Enum
     LIKERT_NINE = "Likert 9 points"
     LIKERT_SIX = "Likert 6 points"
 
-
+class ProfileEnum(Enum):
+    ADMIN = 1
+    COMPANY = 2
+    CLIENT = 3
+    PARTICIPANT = 4
 
 #######################  CLASES ################################
 
@@ -211,20 +217,116 @@ class Item_classification_structure (models.Model):
                                   default=None, null=True, blank=True)
 
 
-# Clases asociadas a la autenticacion
-class User (models.Model):
+# Clases asociadas a la autenticacion. Hereda de las clases principales de autenticacion de django
+class User (AbstractBaseUser, PermissionsMixin):
+    """
+      Defines our custom user class.
+      Username, email and password are required.
+      Adapted from https://medium.com/@sebastianojeda/user-authentication-with-django-rest-framework-and-json-web-tokens-747ea4d84b9f
+      """
+
     username = models.CharField(max_length=50)
     password_hashed = models.CharField(max_length=30)
-    organization = models.CharField(max_length=50)
+    # Como puse al email como campo de autenticación tiene que ponerse unique=True
+    email = models.EmailField(max_length=254, unique=True)
+
+    # Campos que agregué pq no queda en el modelo aunque se deberia heredar de la clase abtracta
+    # The `is_staff` flag is expected by Django to determine who can and cannot
+    # log into the Django admin site. For most users this flag will always be
+    # false.
+    is_staff = models.BooleanField(default=False)
+
+    # A timestamp representing when this object was created.
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # A timestamp reprensenting when this object was last updated.
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # The `USERNAME_FIELD` property tells us which field we will use to log in.
+    USERNAME_FIELD = 'email'
+
+    REQUIRED_FIELDS = ('username',)
+
+    # Campos propios del modelo
+    company = models.ForeignKey(Company, on_delete=models.SET_DEFAULT,
+                                  default=None)
+    client = models.ForeignKey(Client, on_delete=models.SET_DEFAULT,
+                                default=None)
+
+    models.ForeignKey(Company, on_delete=models.CASCADE)
+
+    profileType = models.IntegerField(
+        choices=[(tag, tag.value) for tag in ProfileEnum]  # Choices is a list of Tuple
+    )
+
+    def __str__(self):
+        """
+        Returns a string representation of this `User`.
+        This string is used when a `User` is printed in the console.
+        """
+        return self.username +' Profile ' +self.profileType
+
+    """organization = models.CharField(max_length=50)
     organization_department = models.CharField(max_length=50)
-    email = models.EmailField()
-    website = models.URLField()
     last_login = models.DateTimeField()
     active_account = models.BooleanField()
     registration_date = models.DateTimeField()
-    prefered_language = models.CharField(max_length=30)
+    prefered_language = models.CharField(max_length=30)"""
 
-class Roles_by_user(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    role = models.CharField(max_length=50)
+########################### User manager ########################################
+
+class UserManager(BaseUserManager):
+    """
+    Django requires that custom users define their own Manager class. By
+    inheriting from `BaseUserManager`, we get a lot of the same code used by
+    Django to create a `User`.
+
+    All we have to do is override the `create_user` function which we will use
+    to create `User` objects.
+    https://thinkster.io/tutorials/django-json-api/authentication
+    """
+
+    def _create_user(self, username, email, profile, password=None, **extra_fields):
+        if not username:
+            raise ValueError('Se requiere un nombre de usuario')
+
+        if not email:
+            raise ValueError('Se requiere un email')
+
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=self.normalize_email(email), profile=profile, **extra_fields)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    def create_user(self, username, email, profile, password=None, **extra_fields):
+        """
+        Create and return a `User` with an email, username and password.
+        """
+        # extra_fields.setdefault('profile', 3)
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(username, email, profile, password, **extra_fields)
+
+
+    def create_superuser(self, username, email, password, **extra_fields):
+
+      """
+      Create and return a `User` with superuser (admin) permissions.
+      Es obligatorio sobreescribir esta clase
+      """
+      if password is None:
+          raise TypeError('Los superusuarios deben tener un password')
+
+      """if extra_fields.get('is_staff') is not True:
+        raise ValueError('Superuser must have is_staff=True.')
+
+      if extra_fields.get('is_superuser') is not True:
+        raise ValueError('Superuser must have is_superuser=True.')
+      """
+      extra_fields.setdefault('is_staff', True)
+      extra_fields.setdefault('is_superuser', True)
+      extra_fields.setdefault('profile', 1)
+
+      return self._create_user(username, email, password, **extra_fields)
