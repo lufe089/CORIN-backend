@@ -1,6 +1,6 @@
 from calendar import timegm, calendar
 
-from Apps.encuestador.models import ItemClassification, User
+from Apps.encuestador.models import ItemClassification, User, ProfileEnum
 from Apps.encuestador.models import Item
 from Apps.encuestador.models import Instrument_header
 from Apps.encuestador.models import Response_format
@@ -335,16 +335,18 @@ class LoginByCodeSerializer(serializers.Serializer):
         try:
             customized_instrument_to_client = Customized_instrument.objects.get(prefix=prefix,
                                                                     access_code=access_code)
-
+            config_survey = customized_instrument_to_client.config_survey
             data= {
                 'customized_instrument': CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': None}).data,  #FIXME para retirar las credenciales de acceso
-                'token': self._generate_jwt_token(customized_instrument_to_client)
+                'token': self._generate_jwt_token(customized_instrument_to_client),
+                'config_survey':ConfigSurveysByClientsSerializer(config_survey,context={'request': None}).data,
+                'profile': 4 #PARTICIPANT
             }
             #print("Data que retorna el serializador de login" + str(data['customized_instrument']) + " "+ str(data['user']) + str(data['token']))
             return data
         except Customized_instrument.DoesNotExist:
             raise serializers.ValidationError(
-                'No existe ninguna encuesta para los valores de inicio proporcionados.'
+                'No existe ninguna encuesta con los valores ingresados.'
             )
 
     def _generate_jwt_token(self, customized_instrument):
@@ -356,7 +358,7 @@ class LoginByCodeSerializer(serializers.Serializer):
         # exp_time = datetime.now() + timedelta(days=60)
         now = timegm(datetime.utcnow().utctimetuple())
 
-        future = datetime.now() - timedelta(days=60)
+        future = datetime.now() + timedelta(days=60)
         future_int=timegm(future.timetuple())
         # future_int = timegm(future.timetuple())
         # now_int = timegm(now.timetuple())
@@ -367,6 +369,7 @@ class LoginByCodeSerializer(serializers.Serializer):
         payload =  {
             'customized_instrument_id': customized_instrument.id,
             'config_survey_id':customized_instrument.config_survey.id,
+            'profile': ProfileEnum.PARTICIPANT.value,
             'mode': 'byAccessCode', #Indica que la autenticación fue por codigo de acceso
             'exp': future_int
         }
