@@ -39,10 +39,10 @@ router.register(r'activeItemsSpanish', views.SpanishActiveItemsViewSet)
 router.register(r'average', views.AverageByClassifiers)
 router.register(r'participantsResponse', views.ParticipantResponseViewSet)
 router.register(r'surveysByClient', views.SurveysByClientViewSet)
+# Se debe poner el basename pq sobreescribi la propiedad queryset
+router.register(r'users', views.UsersViewSet)
 
 prefix='api'
-# Wire up our API using automatic URL routing.
-# Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     url(r'^', include(router.urls)),
     path('admin/', admin.site.urls),
@@ -61,10 +61,14 @@ urlpatterns = [
     url(r'^'+prefix+'/consult-responses/$', views.ResponsesView.getParticipantResponsesToDownload),
     url(r'^'+prefix+'/is-allowed-save/$', views.ResponsesView.isAllowedSaveResponses),
     #url(r'^'+prefix+'/login-code/$', views.ResponsesView.loginByAccessCode2),
-    url(r'^'+prefix+'/login-code/$', views.LoginAPIViewByAccessCode.as_view()),
+    url(r'^'+prefix+'/login-code/$', views.LoginAPIView.by_code),
+    url(r'^'+prefix+'/login-pwd/$', views.LoginAPIView.by_pwd),
+    # url(r'^' + prefix +'/users/', views.RegistrationAPIView.as_view()),
     #Rutas propias de los serializadores y los viewsets
     url(r'^'+'api'+'/', include((router.urls, 'encuestador')))
 ]
+# Wire up our API using automatic URL routing.
+# Additionally, we include login URLs for the browsable API.
 
 
 urlpatterns += router.urls

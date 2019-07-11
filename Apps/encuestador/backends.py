@@ -42,6 +42,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         # that we should authenticate against.
         auth_header = authentication.get_authorization_header(request).split()
         auth_header_prefix = self.authentication_header_prefix.lower()
+        print("BACKEND: auth_header", auth_header)
 
         if not auth_header:
             return None
@@ -64,6 +65,15 @@ class JWTAuthentication(authentication.BaseAuthentication):
         prefix = auth_header[0].decode('utf-8')
         token = auth_header[1].decode('utf-8')
 
+        try:
+            if token == None:
+                msg = 'Error en proceso de autenticación, el token no puede estar vacío'
+                raise exceptions.AuthenticationFailed(msg)
+        except UnicodeError:
+            msg = 'Invalid token header. Token string should not contain invalid characters.'
+            raise exceptions.AuthenticationFailed(msg)
+
+
         if prefix.lower() != auth_header_prefix:
             # The auth header prefix is not what we expected. Do not attempt to
             # authenticate.
@@ -80,15 +90,16 @@ class JWTAuthentication(authentication.BaseAuthentication):
         successful, return the user and token. If not, throw an error.
         """
         #try:
-        print("token")
+        print("BACKEND: token")
         print(token)
+        print(str(request.data))
         # Logica para controlar si el token expiró
         try:
             payload = jwt.decode(token, settings.SECRET_KEY)
             print("payload")
             print(payload)
         except Exception as e:
-            msg = 'Autenticacion incorrecta. La sesión expiró. Autentíquese nuevamente'
+            msg = 'Autenticacion incorrecta. No se recibió ningún token de autenticación o no se pudo decodificar el token'
             raise exceptions.AuthenticationFailed(msg)
 
 
@@ -99,8 +110,8 @@ class JWTAuthentication(authentication.BaseAuthentication):
         config_survey_id = payload.get('config_survey_id', None)
 
         #Solo para autenticacion via usuario y contraseña
-        user_id = payload.get('user_id', None)
-        profile_id = payload.get('profile_id', None)
+        user_id = payload.get('id', None)
+        profileType = payload.get('profileType', None)
 
         #Para ambos casos
         mode = payload.get('mode', None)
@@ -122,12 +133,12 @@ class JWTAuthentication(authentication.BaseAuthentication):
             except Config_surveys_by_clients.DoesNotExist:
                 msg = 'Token inválido: No se encuentra ninguna encuesta personalizada para la empresa'
                 raise exceptions.AuthenticationFailed(msg)
-        elif mode == "normal":
+        elif mode == "byPwd":
             """Auteticacion con pasword y contraseña"""
             try:
                 user = User.objects.get(pk=payload['id'])
             except User.DoesNotExist:
-                msg = 'Token inválido: No se encuentra ningún usuario con ese token'
+                msg = 'Token inválido: No se encuentra ningún usuario con el token recibido'
                 raise exceptions.AuthenticationFailed(msg)
             if not user.is_active:
                 msg = 'Este usuario fue desactivado.'

@@ -48,155 +48,196 @@ def insert_data(apps, schema_editor):
     ### This list is used later for adding elements to the evaluation instrument
     itemsList  = []
 
-    ################### Dimensions
-    dim_adaptabilidad= ItemClassification(name="Adaptabilidad", type=ClassificationChoice.DIMENSION.value,
-                                              i18n_code=LanguageChoice.ES.name)
-    dim_adaptabilidad.save()
-    dim_ambidestreza = ItemClassification(name="Ambidestreza", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_ambidestreza.save()
-    dim_aceptaDiv = ItemClassification(name="Aceptación de la diversidad", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_aceptaDiv.save()
-    dim_asociacion = ItemClassification(name="Asociación", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_asociacion.save()
-    dim_complOrga = ItemClassification(name="Complejidad organizacional", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_complOrga.save()
-    dim_compromiso = ItemClassification(name="Compromiso", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_compromiso.save()
-    dim_comunEffect = ItemClassification(name="Comunicación efectiva", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_comunEffect.save()
-    dim_confianza = ItemClassification(name="Confianza", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_confianza.save()
-    dim_confrontacion = ItemClassification(name="Confrontación", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_confrontacion.save()
-    dim_controlBuroc = ItemClassification(name="Control burocrático", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_controlBuroc.save()
-    dim_curiosidad = ItemClassification(name="Curiosidad", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_curiosidad.save()
-    dim_ejecucion = ItemClassification(name="Ejecución", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_ejecucion.save()
-    dim_entorno = ItemClassification(name="Entorno", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_entorno.save()
-    dim_estrategia = ItemClassification(name="Estrategia", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_estrategia.save()
-    dim_flexiMental = ItemClassification(name="Flexibilidad Mental", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_flexiMental.save()
-    dim_geneIdeas = ItemClassification(name="Generación de ideas", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_geneIdeas.save()
-    dim_impIdeas = ItemClassification(name="Implementación de ideas", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_impIdeas.save()
-    dim_liderazgo = ItemClassification(name="Liderazgo", type=ClassificationChoice.DIMENSION.value,
-                                      i18n_code=LanguageChoice.ES.name)
-    dim_liderazgo.save()
-    dim_libertad = ItemClassification(name="Libertad", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_libertad.save()
-    dim_manConfli = ItemClassification(name="Manejo de conflictos", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_manConfli.save()
-    dim_metri = ItemClassification(name="Métricas y retribución", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_metri.save()
-    dim_orientClie = ItemClassification(name="Orientación al cliente y al mercado", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_orientClie.save()
-    dim_orienRiesg = ItemClassification(name="Orientación al riesgo", type=ClassificationChoice.DIMENSION.value,
-                                       i18n_code=LanguageChoice.ES.name)
-    dim_orienRiesg.save()
-    dim_orientEmpre = ItemClassification(name="Orientación emprendedora", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_orientEmpre.save()
-    dim_orientRiesgo = ItemClassification(name="Orientación al riesgo", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_orientRiesgo.save()
-    dim_prioriz = ItemClassification(name="Priorización", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_prioriz.save()
-    dim_promIdeas = ItemClassification(name="Promoción de ideas", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_promIdeas.save()
-    dim_recono_exig = ItemClassification(name="Reconocimiento y exigencia", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_recono_exig.save()
-    dim_relacionam = ItemClassification(name="Relacionamiento", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_relacionam.save()
-    dim_respeto = ItemClassification(name="Respeto", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_respeto.save()
-    dim_simpli_agil = ItemClassification(name="Simplicidad y agilidad", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_simpli_agil.save()
-    dim_tolError = ItemClassification(name="Tolerancia al error", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_tolError.save()
-    dim_tom_decis = ItemClassification(name="Toma de decisiones", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_tom_decis.save()
-    dim_trabaj_equ = ItemClassification(name="Trabajo en equipo", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_trabaj_equ.save()
-    dim_veloc = ItemClassification(name="Velocidad", type=ClassificationChoice.DIMENSION.value,
-                              i18n_code=LanguageChoice.ES.name)
-    dim_veloc.save()
-
     ################### Categories
-    cat_entorno_estrateg = ItemClassification(name="Entorno y estrategia", type=ClassificationChoice.CATEGORY.value,
+    cat_formadores_cultura = ItemClassification(name="Formadores de cultura", type=ClassificationChoice.CATEGORY.value,
                                               i18n_code=LanguageChoice.ES.name)
-    cat_estructura = ItemClassification(name="Estructura", type=ClassificationChoice.CATEGORY.value,
-                                              i18n_code=LanguageChoice.ES.name)
-    cat_liderazgo = ItemClassification(name="Liderazgo y métricas", type=ClassificationChoice.CATEGORY.value,
-                                              i18n_code=LanguageChoice.ES.name)
-    cat_competOrganiz = ItemClassification(name="Competencias organizacionales", type=ClassificationChoice.CATEGORY.value,
-                                       i18n_code=LanguageChoice.ES.name)
+    ##Ya existía
     cat_capacOrganiza = ItemClassification(name="Capacidades organizacionales",
                                            type=ClassificationChoice.CATEGORY.value,
                                            i18n_code=LanguageChoice.ES.name)
-    cat_rasgos = ItemClassification(name="Rasgos culturales para la innovación",
+    ##Ya existía
+    cat_competOrganiz = ItemClassification(name="Competencias organizacionales",
                                            type=ClassificationChoice.CATEGORY.value,
                                            i18n_code=LanguageChoice.ES.name)
+
+    ##Ya existía
+    cat_rasgos = ItemClassification(name="Rasgos culturales para la innovación",
+                                    type=ClassificationChoice.CATEGORY.value,
+                                    i18n_code=LanguageChoice.ES.name)
+
+    ##Ya existía
     cat_roles = ItemClassification(name="Roles comportamentales",
-                                           type=ClassificationChoice.CATEGORY.value,i18n_code=LanguageChoice.ES.name)
-    cat_entorno_estrateg.save()
-    cat_estructura.save()
-    cat_liderazgo.save()
-    cat_competOrganiz.save()
+                                   type=ClassificationChoice.CATEGORY.value, i18n_code=LanguageChoice.ES.name)
+
+
+    #BORRAR cat_estructura = ItemClassification(name="Estructura", type=ClassificationChoice.CATEGORY.value, i18n_code=LanguageChoice.ES.name)
+    #BORRAR cat_liderazgo = ItemClassification(name="Liderazgo y métricas", type=ClassificationChoice.CATEGORY.value, i18n_code=LanguageChoice.ES.name)
+
+
+    cat_formadores_cultura.save()
     cat_capacOrganiza.save()
-    cat_roles.save()
+    cat_competOrganiz.save()
     cat_rasgos.save()
+    cat_roles.save()
+    #BORRAR cat_estructura.save()
+    #BORRAR cat_liderazgo.save()
+
+
+
+
+
+
+
+    ################### Dimensions
+    #Ya existía
+    dim_adaptabilidad= ItemClassification(name="Adaptabilidad", type=ClassificationChoice.DIMENSION.value,
+                                              i18n_code=LanguageChoice.ES.name)
+    dim_adaptabilidad.save()
+    # Ya existía
+    dim_aceptaDiv = ItemClassification(name="Aceptación de la diversidad", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_aceptaDiv.save()
+    # Ya existía
+    dim_ambidestreza = ItemClassification(name="Ambidestreza", type=ClassificationChoice.DIMENSION.value,
+                                          i18n_code=LanguageChoice.ES.name)
+    dim_ambidestreza.save()
+    # Ya existía
+    dim_asociacion = ItemClassification(name="Asociación", type=ClassificationChoice.DIMENSION.value,
+                                        i18n_code=LanguageChoice.ES.name)
+    dim_asociacion.save()
+    # Ya existía
+    dim_compromiso = ItemClassification(name="Compromiso", type=ClassificationChoice.DIMENSION.value,
+                                        i18n_code=LanguageChoice.ES.name)
+    dim_compromiso.save()
+    # Ya existía
+    dim_comunEffect = ItemClassification(name="Comunicación efectiva", type=ClassificationChoice.DIMENSION.value,
+                                         i18n_code=LanguageChoice.ES.name)
+    dim_comunEffect.save()
+    # Ya existía
+    dim_confianza = ItemClassification(name="Confianza", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_confianza.save()
+    # Ya existía
+    dim_confrontacion = ItemClassification(name="Confrontación", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_confrontacion.save()
+    # Ya existía
+    dim_curiosidad = ItemClassification(name="Curiosidad", type=ClassificationChoice.DIMENSION.value,
+                                        i18n_code=LanguageChoice.ES.name)
+    dim_curiosidad.save()
+    # Ya existía
+    dim_ejecucion = ItemClassification(name="Ejecución", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_ejecucion.save()
+    # Ya existía
+    dim_entorno = ItemClassification(name="Entorno", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_entorno.save()
+    # Ya existía
+    dim_estrategia = ItemClassification(name="Estrategia", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_estrategia.save()
+    # Nueva
+    dim_estructura = ItemClassification(name="Estructura", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_estructura.save()
+    # Ya existía
+    dim_flexiMental = ItemClassification(name="Flexibilidad Mental", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_flexiMental.save()
+    # Ya existía
+    dim_geneIdeas = ItemClassification(name="Generación de ideas", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_geneIdeas.save()
+    # Ya existía
+    dim_impIdeas = ItemClassification(name="Implementación de ideas", type=ClassificationChoice.DIMENSION.value,
+                                      i18n_code=LanguageChoice.ES.name)
+    dim_impIdeas.save()
+    # Ya existía
+    dim_libertad = ItemClassification(name="Libertad", type=ClassificationChoice.DIMENSION.value,
+                                      i18n_code=LanguageChoice.ES.name)
+    dim_libertad.save()
+    # Ya existía
+    dim_liderazgo = ItemClassification(name="Liderazgo", type=ClassificationChoice.DIMENSION.value,
+                                      i18n_code=LanguageChoice.ES.name)
+    dim_liderazgo.save()
+    # Ya existía
+    dim_manConfli = ItemClassification(name="Manejo de conflictos", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_manConfli.save()
+    # Ya existía
+    dim_metri = ItemClassification(name="Métricas y retribución", type=ClassificationChoice.DIMENSION.value,
+                                   i18n_code=LanguageChoice.ES.name)
+    dim_metri.save()
+    # Ya existía
+    dim_orientClie = ItemClassification(name="Orientación al cliente y al mercado",
+                                        type=ClassificationChoice.DIMENSION.value,
+                                        i18n_code=LanguageChoice.ES.name)
+    dim_orientClie.save()
+    # Ya existía
+    dim_orienRiesg = ItemClassification(name="Orientación al riesgo", type=ClassificationChoice.DIMENSION.value,
+                                        i18n_code=LanguageChoice.ES.name)
+    dim_orienRiesg.save()
+    # Ya existía
+    dim_orientEmpre = ItemClassification(name="Orientación emprendedora", type=ClassificationChoice.DIMENSION.value,
+                                         i18n_code=LanguageChoice.ES.name)
+    dim_orientEmpre.save()
+    # Ya existía
+    dim_prioriz = ItemClassification(name="Priorización", type=ClassificationChoice.DIMENSION.value,
+                                     i18n_code=LanguageChoice.ES.name)
+    dim_prioriz.save()
+    dim_promIdeas = ItemClassification(name="Promoción de ideas", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_promIdeas.save()
+    dim_recono_exig = ItemClassification(name="Reconocimiento y exigencia", type=ClassificationChoice.DIMENSION.value,
+                                         i18n_code=LanguageChoice.ES.name)
+    dim_recono_exig.save()
+    dim_relacionam = ItemClassification(name="Relacionamiento", type=ClassificationChoice.DIMENSION.value,
+                                        i18n_code=LanguageChoice.ES.name)
+    dim_relacionam.save()
+    dim_respeto = ItemClassification(name="Respeto", type=ClassificationChoice.DIMENSION.value,
+                                     i18n_code=LanguageChoice.ES.name)
+    dim_respeto.save()
+    dim_simpli_agil = ItemClassification(name="Simplicidad y agilidad", type=ClassificationChoice.DIMENSION.value,
+                                         i18n_code=LanguageChoice.ES.name)
+    dim_simpli_agil.save()
+    dim_tolError = ItemClassification(name="Tolerancia al error", type=ClassificationChoice.DIMENSION.value,
+                                      i18n_code=LanguageChoice.ES.name)
+    dim_tolError.save()
+    dim_tom_decis = ItemClassification(name="Toma de decisiones", type=ClassificationChoice.DIMENSION.value,
+                                       i18n_code=LanguageChoice.ES.name)
+    dim_tom_decis.save()
+    dim_trabaj_equ = ItemClassification(name="Trabajo en equipo", type=ClassificationChoice.DIMENSION.value,
+                                        i18n_code=LanguageChoice.ES.name)
+    dim_trabaj_equ.save()
+    dim_veloc = ItemClassification(name="Velocidad", type=ClassificationChoice.DIMENSION.value,
+                                   i18n_code=LanguageChoice.ES.name)
+    dim_veloc.save()
+
+    #BORRAR    dim_complOrga = ItemClassification(name="Complejidad organizacional", type=ClassificationChoice.DIMENSION.value, i18n_code=LanguageChoice.ES.name)
+    #BORRAR    dim_complOrga.save()
+    #BORRAR    dim_controlBuroc = ItemClassification(name="Control burocrático", type=ClassificationChoice.DIMENSION.value, i18n_code=LanguageChoice.ES.name)
+    #BORRAR    dim_controlBuroc.save()
+
+
+
+
 
     ####################### Components
-    comp_apropiacion= ItemClassification(name="Apropiación",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
+
+    # Nuevos componentes
+    comp_complOrga = ItemClassification(name="Complejidad organizacional", type=ClassificationChoice.COMPONENT.value, i18n_code=LanguageChoice.ES.name)
+    comp_complOrga.save()
+    comp_controlBuroc = ItemClassification(name="Control burocrático", type=ClassificationChoice.COMPONENT.value, i18n_code=LanguageChoice.ES.name)
+    comp_controlBuroc.save()
+
+    # Ya estaban
+    comp_apropiacion= ItemClassification(name="Apropiación",type=ClassificationChoice.COMPONENT.value, i18n_code=LanguageChoice.ES.name)
     comp_apropiacion.save()
-    comp_centralizacion= ItemClassification(name="Centralización",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
-    comp_centralizacion.save()
     comp_considIndividualizada= ItemClassification(name="Consideración individualizada",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
     comp_considIndividualizada.save()
-    comp_diferenFuncional= ItemClassification(name="Diferenciación funcional",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
-    comp_diferenFuncional.save()
-    comp_diferenVertical= ItemClassification(name="Diferenciación vertical",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
-    comp_diferenVertical.save()
-    comp_especializacion= ItemClassification(name="Especialización",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
-    comp_especializacion.save()
     comp_estimuIntelec= ItemClassification(name="Estimulación intelectual",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
     comp_estimuIntelec.save()
-    comp_formalizacion= ItemClassification(name="Formalización",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
-    comp_formalizacion.save()
     comp_formulacion= ItemClassification(name="Formulación",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
     comp_formulacion.save()
     comp_influeIdealizada= ItemClassification(name="Influencia idealizada",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
@@ -205,10 +246,23 @@ def insert_data(apps, schema_editor):
     comp_metricas.save()
     comp_motivacion= ItemClassification(name="Motivación inspiradora",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
     comp_motivacion.save()
-    comp_profesionalismo= ItemClassification(name="Profesionalismo",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
-    comp_profesionalismo.save()
     comp_retribucion= ItemClassification(name="Retribución",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
     comp_retribucion.save()
+
+    # PARA BORRAR
+    #BORRAR    comp_centralizacion= ItemClassification(name="Centralización",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
+    #BORRAR    comp_centralizacion.save()
+    #BORRAR    comp_diferenFuncional= ItemClassification(name="Diferenciación funcional",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
+    #BORRAR    comp_diferenFuncional.save()
+    #BORRAR    comp_diferenVertical= ItemClassification(name="Diferenciación vertical",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
+    #BORRAR    comp_diferenVertical.save()
+    #BORRAR    comp_especializacion= ItemClassification(name="Especialización",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
+    #BORRAR    comp_especializacion.save()
+    #BORRAR    comp_formalizacion= ItemClassification(name="Formalización",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
+    #BORRAR    comp_formalizacion.save()
+    #BORRAR    comp_profesionalismo= ItemClassification(name="Profesionalismo",type=ClassificationChoice.COMPONENT.value,i18n_code=LanguageChoice.ES.name)
+    #BORRAR    comp_profesionalismo.save()
+
 
     # Parametric master
 
@@ -436,175 +490,167 @@ def insert_data(apps, schema_editor):
     transItemComOrg16.save()
 
     # Entorno y Estrategias subitems
-    categoria = cat_entorno_estrateg
+    categoria = cat_formadores_cultura
 
-    itemEntEst1 = Item(item_order=1, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
-    itemEntEst2 = Item(item_order=2, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst3 = Item(item_order=3, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst4 = Item(item_order=4, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst5 = Item(item_order=5, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
-    itemEntEst6 = Item(item_order=6, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst7 = Item(item_order=7, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst8 = Item(item_order=8, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst9 = Item(item_order=9, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst10 = Item(item_order=10, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
-    itemEntEst11 = Item(item_order=11, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
+    itemFormCult1 = Item(item_order=1, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
+    itemFormCult2 = Item(item_order=2, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemFormCult3 = Item(item_order=3, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemFormCult4 = Item(item_order=4, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemFormCult5 = Item(item_order=5, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
+    itemFormCult6 = Item(item_order=6, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemFormCult7 = Item(item_order=7, component=comp_formulacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemFormCult8 = Item(item_order=8, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
+    itemFormCult9 = Item(item_order=9, component=comp_formulacion, dimension=dim_estrategia, category=categoria,
+                         response_format=response_format_items_variable)
+    itemFormCult10 = Item(item_order=10, component=comp_apropiacion, dimension=dim_estrategia, category=categoria,response_format=response_format_items_variable)
 
-    itemEntEst1.save()
-    itemEntEst2.save()
-    itemEntEst3.save()
-    itemEntEst4.save()
-    itemEntEst5.save()
-    itemEntEst6.save()
-    itemEntEst7.save()
-    itemEntEst8.save()
-    itemEntEst9.save()
-    itemEntEst10.save()
-    itemEntEst11.save()
+    itemFormCult11 = Item(item_order=11, dimension=dim_entorno, category=categoria,response_format=response_format_items_variable)
+    #Nueva
+    itemFormCult12 = Item(item_order=12, component=comp_complOrga, dimension=dim_estructura, category=categoria, response_format=response_format_items_variable)
+    itemFormCult13 = Item(item_order=13, component=comp_controlBuroc, dimension=dim_estructura, category=categoria,
+                         response_format=response_format_items_variable)
+    itemFormCult14 = Item(item_order=14, component=comp_complOrga, dimension=dim_estructura, category=categoria,
+                         response_format=response_format_items_variable)
+    itemFormCult15 = Item(item_order=15, component=comp_controlBuroc, dimension=dim_estructura, category=categoria,
+                         response_format=response_format_items_variable)
+    itemFormCult16 = Item(item_order=16, component=comp_complOrga, dimension=dim_estructura, category=categoria,
+                         response_format=response_format_items_variable)
+    itemFormCult17 = Item(item_order=17, component=comp_controlBuroc, dimension=dim_estructura, category=categoria,
+                         response_format=response_format_items_variable)
+    itemFormCult18 = Item(item_order=18, component=comp_influeIdealizada, dimension=dim_liderazgo, category=categoria,
+                      response_format=response_format_items_variable)
+    itemFormCult19 = Item(item_order=19, component=comp_metricas, dimension=dim_metri, category=categoria,
+                      response_format=response_format_items_variable)
+    itemFormCult20 = Item(item_order=20, component=comp_motivacion, dimension=dim_liderazgo, category=categoria,
+                      response_format=response_format_items_variable)
+    itemFormCult21 = Item(item_order=21, component=comp_estimuIntelec, dimension=dim_liderazgo, category=categoria,
+                      response_format=response_format_items_variable)
+    itemFormCult22 = Item(item_order=22, component=comp_retribucion, dimension=dim_metri, category=categoria,
+                      response_format=response_format_items_variable)
+    itemFormCult23 = Item(item_order=23, component=comp_considIndividualizada, dimension=dim_liderazgo, category=categoria,
+                      response_format=response_format_items_variable)
 
-    transItemEntEst1 = Trans_item(item=itemEntEst1,
+
+
+    itemFormCult1.save()
+    itemFormCult2.save()
+    itemFormCult3.save()
+    itemFormCult4.save()
+    itemFormCult5.save()
+    itemFormCult6.save()
+    itemFormCult7.save()
+    itemFormCult8.save()
+    itemFormCult9.save()
+    itemFormCult10.save()
+    itemFormCult11.save()
+    itemFormCult12.save()
+    itemFormCult13.save()
+    itemFormCult14.save()
+    itemFormCult15.save()
+    itemFormCult16.save()
+    itemFormCult17.save()
+    itemFormCult18.save()
+    itemFormCult19.save()
+    itemFormCult20.save()
+    itemFormCult21.save()
+    itemFormCult22.save()
+    itemFormCult23.save()
+
+    transItemFormCult1 = Trans_item(item=itemFormCult1,
                                   name="La compañía está inmersa en un ambiente competitivo muy intenso",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst2 = Trans_item(item=itemEntEst2,
+    transItemFormCult2 = Trans_item(item=itemFormCult2,
                                   name="Se considera en el largo plazo el crecimiento por la vía de nuevos negocios",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst3 = Trans_item(item=itemEntEst3,
+    transItemFormCult3 = Trans_item(item=itemFormCult3,
                                   name="Las políticas de la compañía favorecen la creatividad y la innovación",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst4 = Trans_item(item=itemEntEst4,
+    transItemFormCult4 = Trans_item(item=itemFormCult4,
                                   name="En alta proporción, el crecimiento  de la compañía se hace vía innovación y diversificación de mercados",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst5 = Trans_item(item=itemEntEst5,
+    transItemFormCult5 = Trans_item(item=itemFormCult5,
                                   name="La compañía se desenvuelve en un contexto en el que los gustos y preferencias de los clientes cambian con bastante rapidez",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst6 = Trans_item(item=itemEntEst6,
+    transItemFormCult6 = Trans_item(item=itemFormCult6,
                                   name="Las metas y objetivos son conocidos por la mayoría de trabajadores de la compañía",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst7 = Trans_item(item=itemEntEst7,
+    transItemFormCult7 = Trans_item(item=itemFormCult7,
                                   name="La innovación ha sido declarada  como pilar de la estrategia del negocio",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst8 = Trans_item(item=itemEntEst8,
+    transItemFormCult8 = Trans_item(item=itemFormCult8,
                                   name="La misión y la visión de la empresa es entendida y apropiada por la mayoría de los trabajadores de la compañía",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst9 = Trans_item(item=itemEntEst9,
+    transItemFormCult9 = Trans_item(item=itemFormCult9,
                                   name="La estrategia de la empresa es predominantemente prospectiva",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst10 = Trans_item(item=itemEntEst10,
+    transItemFormCult10 = Trans_item(item=itemFormCult10,
                                   name="La misión y visión resultan inspiradores para la mayoría de trabajadores de la compañía",
                                   i18n_code=LanguageChoice.ES.name)
-    transItemEntEst11 = Trans_item(item=itemEntEst11,
+    transItemFormCult11 = Trans_item(item=itemFormCult11,
                                   name="Las tecnologías utilizadas por las empresas del sector (al que pertenece la empresa) cambian con bastante rapidez",
                                   i18n_code=LanguageChoice.ES.name)
-
-    transItemEntEst1.save()
-    transItemEntEst2.save()
-    transItemEntEst3.save()
-    transItemEntEst4.save()
-    transItemEntEst5.save()
-    transItemEntEst6.save()
-    transItemEntEst7.save()
-    transItemEntEst8.save()
-    transItemEntEst9.save()
-    transItemEntEst10.save()
-    transItemEntEst11.save()
-
-    # Estructura subitems
-    categoria = cat_estructura
-
-    itemEstru1 = Item(item_order=1, component=comp_especializacion, dimension=dim_complOrga, category=categoria,
-                       response_format=response_format_items_variable)
-    itemEstru2 = Item(item_order=2, component=comp_centralizacion, dimension=dim_controlBuroc, category=categoria,
-                       response_format=response_format_items_variable)
-    itemEstru3 = Item(item_order=3, component=comp_diferenFuncional, dimension=dim_complOrga, category=categoria,
-                       response_format=response_format_items_variable)
-    itemEstru4 = Item(item_order=4, component=comp_formalizacion, dimension=dim_controlBuroc, category=categoria,
-                       response_format=response_format_items_variable)
-    itemEstru5 = Item(item_order=5, component=comp_profesionalismo, dimension=dim_complOrga, category=categoria,
-                       response_format=response_format_items_variable)
-    itemEstru6 = Item(item_order=6, component=comp_diferenVertical, dimension=dim_controlBuroc, category=categoria,
-                       response_format=response_format_items_variable)
-
-    itemEstru1.save()
-    itemEstru2.save()
-    itemEstru3.save()
-    itemEstru4.save()
-    itemEstru5.save()
-    itemEstru6.save()
-
-    transItemEstru1 = Trans_item(item=itemEstru1,
-                                  name="La compañía se caracteriza por tener un amplio y diverso número de especialidades",
-                                  i18n_code=LanguageChoice.ES.name)
-    transItemEstru2 = Trans_item(item=itemEstru2,
-                                  name="La compañía está apropiadamente descentraliza en la toma de decisiones",
-                                  i18n_code=LanguageChoice.ES.name)
-    transItemEstru3 = Trans_item(item=itemEstru3,
-                                  name="La compañía dividida en un amplio número de unidades funcionales",
-                                  i18n_code=LanguageChoice.ES.name)
-    transItemEstru4 = Trans_item(item=itemEstru4,
-                                  name="En la compañía existe un bajo nivel de formalización burocrática",
-                                  i18n_code=LanguageChoice.ES.name)
-    transItemEstru5 = Trans_item(item=itemEstru5,
-                                  name="La planta de personal de la compañía cuenta con un número considerable de profesionales y tecnólogos",
-                                  i18n_code=LanguageChoice.ES.name)
-    transItemEstru6 = Trans_item(item=itemEstru6,
-                                  name="En la compañía existen pocos niveles jerárquicos (plana)",
-                                  i18n_code=LanguageChoice.ES.name)
-
-    transItemEstru1.save()
-    transItemEstru2.save()
-    transItemEstru3.save()
-    transItemEstru4.save()
-    transItemEstru5.save()
-    transItemEstru6.save()
-
-    # Liderazgo y Metricas subitems
-    categoria = cat_liderazgo
-
-    itemLider1 = Item(item_order=1, component=comp_influeIdealizada, dimension=dim_liderazgo, category=categoria,
-                      response_format=response_format_items_variable)
-    itemLider2 = Item(item_order=2, component=comp_metricas, dimension=dim_metri, category=categoria,
-                      response_format=response_format_items_variable)
-    itemLider3 = Item(item_order=3, component=comp_motivacion, dimension=dim_liderazgo, category=categoria,
-                      response_format=response_format_items_variable)
-    itemLider4 = Item(item_order=4, component=comp_estimuIntelec, dimension=dim_liderazgo, category=categoria,
-                      response_format=response_format_items_variable)
-    itemLider5 = Item(item_order=5, component=comp_retribucion, dimension=dim_metri, category=categoria,
-                      response_format=response_format_items_variable)
-    itemLider6 = Item(item_order=6, component=comp_considIndividualizada, dimension=dim_liderazgo, category=categoria,
-                      response_format=response_format_items_variable)
-
-    itemLider1.save()
-    itemLider2.save()
-    itemLider3.save()
-    itemLider4.save()
-    itemLider5.save()
-    itemLider6.save()
-
-    transItemLider1 = Trans_item(item=itemLider1,
+    #Nueva
+    transItemFormCult12 = Trans_item(item=itemFormCult12,
+                                 name="La compañía se caracteriza por tener un amplio y diverso número de especialidades",
+                                 i18n_code=LanguageChoice.ES.name)
+    transItemFormCult13 = Trans_item(item=itemFormCult13,
+                                    name="La compañía está apropiadamente descentraliza en la toma de decisiones",
+                                    i18n_code=LanguageChoice.ES.name)
+    transItemFormCult14 = Trans_item(item=itemFormCult14,
+                                    name="La compañía dividida en un amplio número de unidades funcionales",
+                                    i18n_code=LanguageChoice.ES.name)
+    transItemFormCult15 = Trans_item(item=itemFormCult15,
+                                    name="En la compañía existe un bajo nivel de formalización burocrática",
+                                    i18n_code=LanguageChoice.ES.name)
+    transItemFormCult16 = Trans_item(item=itemFormCult16,
+                                    name="La planta de personal de la compañía cuenta con un número considerable de profesionales y tecnólogos",
+                                    i18n_code=LanguageChoice.ES.name)
+    transItemFormCult17 = Trans_item(item=itemFormCult17, name="En la compañía existen pocos niveles jerárquicos (plana)",
+                                    i18n_code=LanguageChoice.ES.name)
+    transItemFormCult18 = Trans_item(item=itemFormCult18,
                                  name="La mayoría de los líderes de la compañía generan respeto, admiración y son considerados dignos de ser imitados",
                                  i18n_code=LanguageChoice.ES.name)
-    transItemLider2 = Trans_item(item=itemLider2,
+    transItemFormCult19 = Trans_item(item=itemFormCult19,
                                  name="El sistema y los mecanismos de medición comunica a los colaboradores lo que la compañía valora en términos de innovación y creatividad",
                                  i18n_code=LanguageChoice.ES.name)
-    transItemLider3 = Trans_item(item=itemLider3,
+    transItemFormCult20 = Trans_item(item=itemFormCult20,
                                  name="La mayoría de los líderes de la compañía proporciona a sus colaboradores un trabajo con sentido y significado ",
                                  i18n_code=LanguageChoice.ES.name)
-    transItemLider4 = Trans_item(item=itemLider4,
+    transItemFormCult21 = Trans_item(item=itemFormCult21,
                                  name="La mayoría de los lideres de la compañía estimula la creatividad y la innovación en su personal",
                                  i18n_code=LanguageChoice.ES.name)
-    transItemLider5 = Trans_item(item=itemLider5,
+    transItemFormCult22 = Trans_item(item=itemFormCult22,
                                  name="El sistema de compensación de la compañía esta orientado para que los colaboradores identifiquen comportamientos innovadores deseables",
                                  i18n_code=LanguageChoice.ES.name)
-    transItemLider6 = Trans_item(item=itemLider6,
+    transItemFormCult23 = Trans_item(item=itemFormCult23,
                                  name="La mayoría de los líderes de la compañía dan soporte y apoyo para el logro y desarrollo de sus colaboradores",
                                  i18n_code=LanguageChoice.ES.name)
 
-    transItemLider1.save()
-    transItemLider2.save()
-    transItemLider3.save()
-    transItemLider4.save()
-    transItemLider5.save()
-    transItemLider6.save()
+
+    transItemFormCult1.save()
+    transItemFormCult2.save()
+    transItemFormCult3.save()
+    transItemFormCult4.save()
+    transItemFormCult5.save()
+    transItemFormCult6.save()
+    transItemFormCult7.save()
+    transItemFormCult8.save()
+    transItemFormCult9.save()
+    transItemFormCult10.save()
+    transItemFormCult11.save()
+    transItemFormCult12.save()
+    transItemFormCult13.save()
+    transItemFormCult14.save()
+    transItemFormCult15.save()
+    transItemFormCult16.save()
+    transItemFormCult17.save()
+    transItemFormCult18.save()
+    transItemFormCult19.save()
+    transItemFormCult20.save()
+    transItemFormCult21.save()
+    transItemFormCult22.save()
+    transItemFormCult23.save()
+
 
     # Rasgos Culturales para la Inovacion subitems
     categoria = cat_rasgos
@@ -762,20 +808,6 @@ def insert_data(apps, schema_editor):
     itemsList.append(itemRasgos9)
     itemsList.append(itemRasgos10)
 
-    itemsList.append(itemLider1)
-    itemsList.append(itemLider2)
-    itemsList.append(itemLider3)
-    itemsList.append(itemLider4)
-    itemsList.append(itemLider5)
-    itemsList.append(itemLider6)
-
-    itemsList.append(itemEstru1)
-    itemsList.append(itemEstru2)
-    itemsList.append(itemEstru3)
-    itemsList.append(itemEstru4)
-    itemsList.append(itemEstru5)
-    itemsList.append(itemEstru6)
-
     itemsList.append(itemCapOrg1)
     itemsList.append(itemCapOrg2)
     itemsList.append(itemCapOrg3)
@@ -801,17 +833,29 @@ def insert_data(apps, schema_editor):
     itemsList.append(itemComOrg15)
     itemsList.append(itemComOrg16)
 
-    itemsList.append(itemEntEst1)
-    itemsList.append(itemEntEst2)
-    itemsList.append(itemEntEst3)
-    itemsList.append(itemEntEst4)
-    itemsList.append(itemEntEst5)
-    itemsList.append(itemEntEst6)
-    itemsList.append(itemEntEst7)
-    itemsList.append(itemEntEst8)
-    itemsList.append(itemEntEst9)
-    itemsList.append(itemEntEst10)
-    itemsList.append(itemEntEst11)
+    itemsList.append(itemFormCult1)
+    itemsList.append(itemFormCult2)
+    itemsList.append(itemFormCult3)
+    itemsList.append(itemFormCult4)
+    itemsList.append(itemFormCult5)
+    itemsList.append(itemFormCult6)
+    itemsList.append(itemFormCult7)
+    itemsList.append(itemFormCult8)
+    itemsList.append(itemFormCult9)
+    itemsList.append(itemFormCult10)
+    itemsList.append(itemFormCult11)
+    itemsList.append(itemFormCult12)
+    itemsList.append(itemFormCult13)
+    itemsList.append(itemFormCult14)
+    itemsList.append(itemFormCult15)
+    itemsList.append(itemFormCult16)
+    itemsList.append(itemFormCult17)
+    itemsList.append(itemFormCult18)
+    itemsList.append(itemFormCult19)
+    itemsList.append(itemFormCult20)
+    itemsList.append(itemFormCult21)
+    itemsList.append(itemFormCult22)
+    itemsList.append(itemFormCult23)
 
     #Se agregan los items que ya se crearon al instrumento
     for item in itemsList:
@@ -820,7 +864,7 @@ def insert_data(apps, schema_editor):
 
 
     # Se crea una compañia para hacer pruebas
-    companyTest = Company(company_contact_name ="Contacto de prueba")
+    companyTest = Company(company_contact_name ="Contacto de prueba", name="Compania Julia")
     companyTest.save()
 
     # Se crea un cliente de prueba
@@ -842,7 +886,7 @@ def insert_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-       ('encuestador', '0001_initial'),
+        ('encuestador', '0001_initial'),
     ]
 
     operations = [

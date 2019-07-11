@@ -20,21 +20,17 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 from datetime import datetime, timedelta
+from django.contrib.auth import authenticate
 
-from rest_framework.response import Response
 
 import jwt
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('email','id')
 
 class CompanySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Company
         #fields = ('company_contact_name','company_email')
-        fields = ('__all__')
+        fields = ('id','name')
 
 class ClientSerializer(serializers.HyperlinkedModelSerializer):
     company = CompanySerializer(many=False, read_only=True)
@@ -301,6 +297,165 @@ class ParticipantResponseHeaderSerializer(serializers.HyperlinkedModelSerializer
             return {'error': 'No space'}
             return {}
 
+class UserSerializer(serializers.ModelSerializer):
+    """Handles serialization and deserialization of User objects."""
+    """Adjusted From https://thinkster.io/tutorials/django-json-api/authentication"""
+
+    # Passwords must be at least 8 characters, but no more than 128
+    # characters. These values are the default provided by Django. We could
+    # change them, but that would create extra work while introducing no real
+    # benefit, so lets just stick with the defaults.
+    password = serializers.CharField(
+        max_length=128,
+        min_length=8,
+        write_only=True
+    )
+
+    profileType = serializers.IntegerField()
+    company_id = serializers.IntegerField()
+    client_id = serializers.IntegerField()
+    token = serializers.CharField(max_length=255, read_only=True)
+    company = CompanySerializer(many=False, read_only=True)
+    client= ClientSerializer(many=False, read_only=True)
+    email = serializers.CharField(max_length=255)
+
+    class Meta:
+        model = User
+        fields = ('id','email', 'username', 'password', 'token','company', 'client', 'profileType', 'company_id',
+                  'client_id')
+
+        #class Meta:
+            #model = User
+            #fields = ('email', 'id')
+
+        # The `read_only_fields` option is an alternative for explicitly
+        # specifying the field with `read_only=True` like we did for password
+        # above. The reason we want to use `read_only_fields` here is that
+        # we don't need to specify anything else about the field. The
+        # password field needed the `min_length` and
+        # `max_length` properties, but that isn't the case for the token
+        # field.
+        read_only_fields = ('token',)
+
+    def create(self, validated_data):
+        # Use the `create_user` method we wrote earlier to create a new user.
+        # FIXME verificar q no exista
+        # Para asegurar que el username es el mismo email
+        validated_data['username'] = validated_data['email']
+        # Crea el usuario
+        user = User.objects.create_user(**validated_data)
+        return user
+
+    """
+    def update(self, instance, validated_data):
+        #Performs an update on a User
+
+        # Passwords should not be handled with `setattr`, unlike other fields.
+        # Django provides a function that handles hashing and
+        # salting passwords. That means
+        # we need to remove the password field from the
+        # `validated_data` dictionary before iterating over it.
+        password = validated_data.pop('password', None)
+        for (key, value) in validated_data.items():
+            # For the keys remaining in `validated_data`, we will set them on
+            # the current `User` instance one at a time.
+            setattr(instance, key, value)
+
+        if password is not None:
+            # `.set_password()`  handles all
+            # of the security stuff that we shouldn't be concerned with.
+            instance.set_password(password)
+
+        # After everything has been updated we must explicitly save
+        # the model. It's worth pointing out that `.set_password()` does not
+        # save the model.
+        # Para asegurar que el username es el mismo email
+        validated_data['username'] = validated_data['email']
+        print ("User datos a actualizar en serializer ", validated_data)
+        instance.save()
+
+        return instance
+    """
+class LoginByPwdSerializer(serializers.Serializer):
+
+    # Estos campos aqui son super importanes pq si el serializador no viene de un modelo entonces solo va entender lo que este aqui definido.
+    email = serializers.CharField(max_length=255,write_only=True)
+    password = serializers.CharField(max_length=255,write_only=True)
+    token = serializers.CharField(max_length=255, read_only=True)
+    user = UserSerializer(many=False, required=False)
+
+    def validate(self, data):
+        # The `validate` method is where we make sure that the current
+        # instance of `LoginSerializer` has "valid". In the case of logging a
+        # user in, this means validating that they've provided an email
+        # and password and that this combination matches one of the users in
+        # our database.
+        email = data.get('email', None)
+        password = data.get('password', None)
+
+        # Raise an exception if an
+        # email is not provided.
+        if email is None:
+            raise serializers.ValidationError(
+                'El email es requerido para autenticarse en la aplicación.'
+            )
+
+        # Raise an exception if a
+        # password is not provided.
+        if password is None:
+            raise serializers.ValidationError(
+                'El password es requerido para autenticarse'
+            )
+
+        # The `authenticate` method is provided by Django and handles checking
+        # for a user that matches this email/password combination. Notice how
+        # we pass `email` as the `username` value since in our User
+        # model we set `USERNAME_FIELD` as `email`.
+        print("LOG ... LoginByPwdSerializer: username "+ email + " password "+ password)
+        """
+        try:
+            user = User.objects.get(username=email, password=password)
+        except User.DoesNotExist:
+            # If no user was found matching this email/password combination then
+            # `authenticate` will return `None`. Raise an exception in this case.
+            raise serializers.ValidationError(
+                'No se encontró un ningún usuario con la combinación de email/contraseña'
+            )
+        """
+        # The `authenticate` method is provided by Django and handles checking
+        # for a user that matches this email/password combination. Notice how
+        # we pass `email` as the `username` value since in our User
+        # model we set `USERNAME_FIELD` as `email`.
+        user = authenticate(username=email, password=password)
+        if user == None:
+            raise serializers.ValidationError(
+                'No se encontró un ningún usuario con la combinación de email/contraseña'
+            )
+
+        # Django provides a flag on our `User` model called `is_active`. The
+        # purpose of this flag is to tell us whether the user has been banned
+        # or deactivated. This will almost never be the case, but
+        # it is worth checking. Raise an exception in this case.
+        if not user.is_active:
+            raise serializers.ValidationError(
+                'El usuario se encuentra inactivo'
+            )
+
+        # The `validate` method should return a dictionary of validated data.
+        # This is the data that is passed to the `create` and `update` methods
+        # that we will see later on.
+        return {  # Si no lo pongo asi esale este error "Got KeyError when attempting to get a value for field `company_id` on serializer `UserSerializer`
+            'user': user,
+            'email': user.email,
+            'username': user.username,
+            'profileType': user.profileType,
+            'token': user.token,
+            'company_id':user.company.id,
+            'client_id':user.client.id
+        }
+
+
+
 class LoginByCodeSerializer(serializers.Serializer):
 
     # Estos campos aqui son super importanes pq si el serializador no viene de un modelo entonces solo va entender lo que este aqui definido.
@@ -340,7 +495,7 @@ class LoginByCodeSerializer(serializers.Serializer):
                 'customized_instrument': CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': None}).data,  #FIXME para retirar las credenciales de acceso
                 'token': self._generate_jwt_token(customized_instrument_to_client),
                 'config_survey':ConfigSurveysByClientsSerializer(config_survey,context={'request': None}).data,
-                'profile': 4 #PARTICIPANT
+                'profile': 4 #PARTICIPANT by default
             }
             #print("Data que retorna el serializador de login" + str(data['customized_instrument']) + " "+ str(data['user']) + str(data['token']))
             return data

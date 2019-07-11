@@ -16,6 +16,7 @@ from Apps.encuestador.models import LanguageChoice
 from Apps.encuestador.models import Participant_response_header
 from Apps.encuestador.models import Response_format
 from Apps.encuestador.models import Surveys_by_client
+from Apps.encuestador.models import User
 from Apps.encuestador.models import Trans_instrument_header
 from Apps.encuestador.models import Trans_item
 from Apps.encuestador.models import Trans_parametric_table,Parametric_master
@@ -31,6 +32,8 @@ from Apps.encuestador.serializers import SurveysByClientSerializer
 from Apps.encuestador.serializers import TranslatedItemSerializer
 from Apps.encuestador.serializers import TranslatedInstrumentSerializer
 from Apps.encuestador.serializers import LoginByCodeSerializer
+from Apps.encuestador.serializers import LoginByPwdSerializer
+from Apps.encuestador.serializers import UserSerializer
 
 """
 """
@@ -40,7 +43,7 @@ from rest_framework.decorators import api_view
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-
+from rest_framework.decorators import action
 # Create your views here.
 
 """Endpoint that allows the database objects to be viewed or edited."""
@@ -71,7 +74,6 @@ class CustomizedInstrumentViewSet (viewsets.ModelViewSet):
     serializer_class = CustomizedInstrumentSerializer
     queryset = Customized_instrument.objects.all()
 
-
 class CompanyViewSet (viewsets.ModelViewSet):
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
@@ -84,7 +86,6 @@ class ClientViewSet (viewsets.ModelViewSet):
 class ConfigSurveysByClientsViewSet (viewsets.ModelViewSet):
     serializer_class = ConfigSurveysByClientsSerializer
     queryset = Config_surveys_by_clients.objects.all()
-
 
 class ResponseFormatViewSet(viewsets.ModelViewSet):
     serializer_class = ResponseFormatSerializer
@@ -163,6 +164,38 @@ class AverageByClassifiers (viewsets.ModelViewSet):
     queryset= Items_respon_by_participants.objects.filter(participant_response_header__id__in =responseHeadersByCompany).values("participant_response_header","item__dimension__name", "item__dimension_id").annotate(average=Avg('answer_numeric')).order_by('-average')
 
 
+class UsersViewSet (viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    """ Personalizado con la info que estaba disponible en https://www.django-rest-framework.org/api-guide/viewsets/#marking-extra-actions-for-routing"""
+
+    @action(detail=False, methods=['post'])
+    def users_by_company(self,request):
+        idCompany = self.request.data['idCompany']
+
+        if (idCompany == None):
+            # Se retornan todos los usuarios
+            users = User.objects.all()
+        else:
+            # Consultar todos los ids de clientes asociados a una compañia
+            users = User.objects.filter(company__id=idCompany)
+        # Como serializar los datos para poderlos retornar en el request
+        serializer = UserSerializer(users, many=True)
+        print(serializer.data)
+        return Response(serializer.data)
+
+
+    def update(self, request,  pk=None):
+        serializer_data = self.request.data
+
+        # Here is that serialize, validate, save pattern we talked about
+        # before.
+        print("User udpdate datos recibidos:", serializer_data)
+        serializer = self.serializer_class(data=serializer_data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class ResponsesView(APIView):
     @api_view(['GET'])
     def get_areas(request):
@@ -184,43 +217,6 @@ class ResponsesView(APIView):
             is_active=True).values('new_item__id')
         queryset = Trans_item.objects.filter(item__in=activeItemsId).values().filter(i18n_code=LanguageChoice.ES.name)
 
-    @api_view(['POST'])
-    @permission_classes([AllowAny, ])
-    # @renderer_classes((JSONRenderer,))
-    #FIXME remove
-    def loginByAccessCode2(request, format=None):
-        """  Retorna un customized instrument si el prefijo y codigo enviado por el usuario existe y retorna
-        null en caso contrario """
-        try:
-            access_code = request.data['access_code']
-            prefix= request.data['prefix']
-            customized_instrument_to_client = Customized_instrument.objects.get(prefix=prefix, access_code=access_code)
-            try:
-                # Si existe se serializa el objeto para retornarlo en la peticion
-                serializer = CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': request})
-                # asi se retornan los datos del serializador
-
-                # se construye el token
-                #payload = jwt._payload_handler(customized_instrument_to_client)
-                # payload = serializer.data
-                print ("payload data "+ str(serializer.data))
-                payload={}
-                payload['prueba']="algo"
-                #print("payload data" + payload)
-                token = jwt.encode(payload, settings.SECRET_KEY)
-                details = payload
-                details['token'] = token
-                #user_logged_in.send(sender=user.__class__,
-                                    #request=request, user=
-
-                #print( "details to print" + details)
-                return Response(details)
-            except Customized_instrument.DoesNotExist:
-               return Response({'error': 'no_customized_instrument'}, status=status.HTTP_200_OK)
-               # return Response( CustomizedInstrumentSerializer(customized_instrument_to_client,context={'request': request}).data,status = status.HTTP_200_OK)
-        except KeyError:
-            """ Se retorna 200 aunque podría 403 por el manejo que le estoy dando a los errores en la vista"""
-            return Response({'error': 'ingrese codigo de acceso y prefijo'}, status=status.HTTP_200_OK)
 
     @api_view(['POST'])
     # @renderer_classes((JSONRenderer,))
@@ -433,6 +429,7 @@ class ResponsesView(APIView):
         else:
             response = {'save': False}
         return Response(response,status=status.HTTP_200_OK)
+
     """ Lo comento pq al fin no sirve0
     @api_view(['GET'])
     # @renderer_classes((JSONRenderer,))
@@ -453,7 +450,9 @@ class ResponsesView(APIView):
 
     """
 
-class LoginAPIViewByAccessCode(APIView):
+""" *************************REGISTRO & LOGIN & AUTENTICACION***************************************"""
+
+class LoginAPIView(APIView):
     permission_classes = (AllowAny,)
     #renderer_classes = (UserJSONRenderer,)
     serializer_class = LoginByCodeSerializer
@@ -461,7 +460,8 @@ class LoginAPIViewByAccessCode(APIView):
         Esta vista controla las peticiones de autenticacion cuando se hace por código de acceso y prefijo
     """
 
-    def post(self, request):
+    @api_view(['POST'])
+    def by_code(request):
         """ Este codigo se ejecuta solo cuando se reciben peticiones POST"""
 
         requestData = {}
@@ -475,10 +475,28 @@ class LoginAPIViewByAccessCode(APIView):
         # anything to save. Instead, the `validate` method on our serializer
         # handles everything we need.
 
-        serializer = self.serializer_class(data=requestData,context=serializer_context)
+        serializer = LoginByCodeSerializer(data=requestData,context=serializer_context)
         serializer.is_valid(raise_exception=True) # Retorna error de tipo 400
         # Responde con los datos que ya incluye el token de autenticación que fue agregado x el serializador
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+    @api_view(['POST'])
+    def by_pwd(request):
+        requestData = {}
+        serializer_context = {
+            'request': request,
+        }
+        requestData['email'] = request.data['email']
+        requestData['password'] = request.data['password']
+
+        serializer = LoginByPwdSerializer(data=requestData)
+        serializer.is_valid(raise_exception=True)
+
+        # El usuario que se retorna se serializa para poderlo retornar
+        serializer = UserSerializer(serializer.validated_data, many=False)
+        print("LOGINVIEW: Authenticated user to return " + str(serializer.data))
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
     serializer_class = SimpleItemClassificationSerializer

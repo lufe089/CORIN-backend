@@ -249,7 +249,7 @@ REST_FRAMEWORK = {
     ],
     # Esta linea se debe comentar si no se quiere que se requiera autenticacion para ver la informacion
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        #'rest_framework.permissions.IsAuthenticated',
     )
 }
 

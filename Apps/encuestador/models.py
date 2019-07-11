@@ -3,6 +3,10 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.contrib.auth.models import BaseUserManager
 from enum import Enum
+from django.conf import settings
+from datetime import datetime, timedelta
+from calendar import timegm
+import jwt
 
 ##########################  ENUMS ##########################
 
@@ -141,6 +145,7 @@ class Instrument_structure_history(models.Model):
 class Company(models.Model):
     company_contact_name = models.CharField(max_length=50)
     company_email = models.EmailField()
+    name = models.CharField(max_length=100)
 
 class Client(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
@@ -217,6 +222,65 @@ class Item_classification_structure (models.Model):
                                   default=None, null=True, blank=True)
 
 
+########################### User manager ########################################
+
+class UserManager(BaseUserManager):
+    """
+    Django requires that custom users define their own Manager class. By
+    inheriting from `BaseUserManager`, we get a lot of the same code used by
+    Django to create a `User`.
+
+    All we have to do is override the `create_user` function which we will use
+    to create `User` objects.
+    https://thinkster.io/tutorials/django-json-api/authentication
+    """
+
+    def _create_user(self, username, email, profileType, password=None, **extra_fields):
+        """ Metodo privado para crear el usuario """
+        if not username:
+            raise ValueError('Se requiere un nombre de usuario')
+
+        if not email:
+            raise ValueError('Se requiere un email')
+
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=self.normalize_email(email), profileType=profileType, **extra_fields)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    # By default profile 3 que es client
+    def create_user(self, username, email, profileType=3, password=None, **extra_fields):
+        """
+        Create and return a `User` with an email, username and password.
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(username, email, profileType, password, **extra_fields)
+
+
+    def create_superuser(self, username, email, password, **extra_fields):
+
+      """
+      Create and return a `User` with superuser (admin) permissions.
+      Es obligatorio sobreescribir esta clase
+      """
+      if password is None:
+          raise TypeError('Los superusuarios deben tener un password')
+
+      """if extra_fields.get('is_staff') is not True:
+        raise ValueError('Superuser must have is_staff=True.')
+
+      if extra_fields.get('is_superuser') is not True:
+        raise ValueError('Superuser must have is_superuser=True.')
+      """
+      extra_fields.setdefault('is_staff', True)
+      extra_fields.setdefault('is_superuser', True)
+      extra_fields.setdefault('profile', 1)
+
+      return self._create_user(username, email, password, **extra_fields)
+
 # Clases asociadas a la autenticacion. Hereda de las clases principales de autenticacion de django
 class User (AbstractBaseUser, PermissionsMixin):
     """
@@ -251,7 +315,7 @@ class User (AbstractBaseUser, PermissionsMixin):
     company = models.ForeignKey(Company, on_delete=models.SET_DEFAULT,
                                   default=None)
     client = models.ForeignKey(Client, on_delete=models.SET_DEFAULT,
-                                default=None)
+                                default=None, null=True, blank=True)
 
     models.ForeignKey(Company, on_delete=models.CASCADE)
 
@@ -259,74 +323,76 @@ class User (AbstractBaseUser, PermissionsMixin):
         choices=[(tag, tag.value) for tag in ProfileEnum]  # Choices is a list of Tuple
     )
 
+    # Tells Django that the UserManager class defined above should manage
+    # objects of this type.
+    objects = UserManager()
+
+    @property
+    def token(self):
+        """
+        Allows us to get a user's token by calling `user.token` instead of
+        `user.generate_jwt_token().
+
+        The `@property` decorator above makes this possible. `token` is called
+        a "dynamic property".
+        """
+        return self._generate_jwt_token()
+
+    def get_full_name(self):
+        """
+        This method is required by Django for things like handling emails.
+        Typically this would be the user's first and last name. Since we do
+        not store the user's real name, we return their username instead.
+        """
+        return self.email
+
+    def get_short_name(self):
+        """
+        This method is required by Django for things like handling emails.
+        Typically, this would be the user's first name. Since we do not store
+        the user's real name, we return their username instead.
+        """
+        return self.email
+
+    def _generate_jwt_token(self):
+        """
+               Generates a JSON Web Token that stores the customized_instrument_id and has an expiry
+               date set to 60 days into the future.
+               """
+        # dt = datetime.now() + timedelta(days=60)
+        # exp_time = datetime.now() + timedelta(days=60)
+        now = timegm(datetime.utcnow().utctimetuple())
+
+        future = datetime.now() + timedelta(days=60)
+        future_int = timegm(future.timetuple())
+        # future_int = timegm(future.timetuple())
+        # now_int = timegm(now.timetuple())
+        print("future " + str(future))
+        print("future number" + str(timegm(future.timetuple())))
+
+        exp_time = timegm(datetime.utcnow().utctimetuple())
+        id_client =None
+        if (self.client != None):
+            id_client = self.client.id
+        payload = {
+            #'email': self.email,
+            'company_id':self.company.id,
+            'client_id': id_client,
+            'profile': self.profileType,
+            'mode': 'byPwd',  # Indica que la autenticación fue por codigo de acceso, importante en la clase backend
+            'exp': future_int
+        }
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
+        if payload['exp'] < now:
+            print("MODELS: El token expiró desde su creación. ERROR")
+        return token.decode('utf-8')
+
+
     def __str__(self):
         """
         Returns a string representation of this `User`.
         This string is used when a `User` is printed in the console.
         """
-        return self.username +' Profile ' +self.profileType
+        return self.username +' Profile ' +str(self.profileType)
 
-    """organization = models.CharField(max_length=50)
-    organization_department = models.CharField(max_length=50)
-    last_login = models.DateTimeField()
-    active_account = models.BooleanField()
-    registration_date = models.DateTimeField()
-    prefered_language = models.CharField(max_length=30)"""
-
-########################### User manager ########################################
-
-class UserManager(BaseUserManager):
-    """
-    Django requires that custom users define their own Manager class. By
-    inheriting from `BaseUserManager`, we get a lot of the same code used by
-    Django to create a `User`.
-
-    All we have to do is override the `create_user` function which we will use
-    to create `User` objects.
-    https://thinkster.io/tutorials/django-json-api/authentication
-    """
-
-    def _create_user(self, username, email, profile, password=None, **extra_fields):
-        if not username:
-            raise ValueError('Se requiere un nombre de usuario')
-
-        if not email:
-            raise ValueError('Se requiere un email')
-
-        email = self.normalize_email(email)
-        user = self.model(username=username, email=self.normalize_email(email), profile=profile, **extra_fields)
-        user.set_password(password)
-        user.save()
-
-        return user
-
-    def create_user(self, username, email, profile, password=None, **extra_fields):
-        """
-        Create and return a `User` with an email, username and password.
-        """
-        # extra_fields.setdefault('profile', 3)
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', False)
-        return self._create_user(username, email, profile, password, **extra_fields)
-
-
-    def create_superuser(self, username, email, password, **extra_fields):
-
-      """
-      Create and return a `User` with superuser (admin) permissions.
-      Es obligatorio sobreescribir esta clase
-      """
-      if password is None:
-          raise TypeError('Los superusuarios deben tener un password')
-
-      """if extra_fields.get('is_staff') is not True:
-        raise ValueError('Superuser must have is_staff=True.')
-
-      if extra_fields.get('is_superuser') is not True:
-        raise ValueError('Superuser must have is_superuser=True.')
-      """
-      extra_fields.setdefault('is_staff', True)
-      extra_fields.setdefault('is_superuser', True)
-      extra_fields.setdefault('profile', 1)
-
-      return self._create_user(username, email, password, **extra_fields)
