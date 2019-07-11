@@ -342,8 +342,12 @@ class UserSerializer(serializers.ModelSerializer):
         # FIXME verificar q no exista
         # Para asegurar que el username es el mismo email
         validated_data['username'] = validated_data['email']
-        # Crea el usuario
-        user = User.objects.create_user(**validated_data)
+
+        # 1 es admin
+        if validated_data['profileType'] == 1:
+            user = User.objects.create_superuser(**validated_data)
+        else:
+            user = User.objects.create_user(**validated_data)
         return user
 
     """
@@ -445,13 +449,14 @@ class LoginByPwdSerializer(serializers.Serializer):
         # This is the data that is passed to the `create` and `update` methods
         # that we will see later on.
         return {  # Si no lo pongo asi esale este error "Got KeyError when attempting to get a value for field `company_id` on serializer `UserSerializer`
-            'user': user,
             'email': user.email,
-            'username': user.username,
             'profileType': user.profileType,
             'token': user.token,
-            'company_id':user.company.id,
-            'client_id':user.client.id
+            'company_id': user.company.id,
+            'client_id': user.client.id,
+            'id': user.id,
+            'company': user.company,
+            'username': user.username
         }
 
 

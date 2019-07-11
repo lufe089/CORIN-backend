@@ -260,7 +260,7 @@ class UserManager(BaseUserManager):
         return self._create_user(username, email, profileType, password, **extra_fields)
 
 
-    def create_superuser(self, username, email, password, **extra_fields):
+    def create_superuser(self, username, email, profileType=1, password=None, **extra_fields):
 
       """
       Create and return a `User` with superuser (admin) permissions.
@@ -277,9 +277,8 @@ class UserManager(BaseUserManager):
       """
       extra_fields.setdefault('is_staff', True)
       extra_fields.setdefault('is_superuser', True)
-      extra_fields.setdefault('profile', 1)
 
-      return self._create_user(username, email, password, **extra_fields)
+      return self._create_user(username, email, profileType, password, **extra_fields)
 
 # Clases asociadas a la autenticacion. Hereda de las clases principales de autenticacion de django
 class User (AbstractBaseUser, PermissionsMixin):
