@@ -309,7 +309,8 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         max_length=128,
         min_length=8,
-        write_only=True
+        write_only=True,
+        required=False  #asi hay peticiones como update en el que no se tiene que mandar este campo
     )
 
     profileType = serializers.IntegerField()
@@ -318,11 +319,11 @@ class UserSerializer(serializers.ModelSerializer):
     # then this validation step will not take place if the field is not included.
     # https://www.django-rest-framework.org/api-guide/serializers/
 
-    company_id = serializers.IntegerField(required=False)
-    client_id = serializers.IntegerField(required=False)
+    company_id = serializers.IntegerField(required=False, allow_null=True)
+    client_id = serializers.IntegerField(required=False, allow_null=True)
     token = serializers.CharField(max_length=255, read_only=True)
-    company = CompanySerializer(many=False, read_only=True)
-    client= ClientSerializer(many=False, read_only=True)
+    company = CompanySerializer(many=False, read_only=True, allow_null=True)#autoriza que lleguen campos en null como por ejemplo para el admin
+    client= ClientSerializer(many=False, read_only=True, allow_null=True)
     email = serializers.CharField(max_length=255)
 
     class Meta:
@@ -349,7 +350,7 @@ class UserSerializer(serializers.ModelSerializer):
         print ("Datos validados", validated_data)
         validated_data['username'] = validated_data['email']
 
-        print ("UserSerializer create : ingrese a validar los datos recibidos")
+        print ("UserSerializer create")
 
         user = {}
         try:
@@ -360,27 +361,12 @@ class UserSerializer(serializers.ModelSerializer):
                 user = User.objects.create_user(**validated_data)
             return user
         except (IntegrityError):
-            print ("error")
+            print ("UserSerializer create Integrity error")
             raise serializers.ValidationError('Ya existe registrado un usuario con el email '+ validated_data['email'])
 
     def validate(self, data):
-        print("UserSerializer validate: ingresa a validar los datos")
-        # Passwords should not be handled with `setattr`, unlike other fields.
-        # Django provides a function that handles hashing and
-        # salting passwords. That means
-        # we need to remove the password field from the
-        # `validated_data` dictionary before iterating over it.
-        password = data.pop('password', None)
-
-        # Segun el rol la compañia y el cliente puede ser null entonces si es del caso se sacan de los datos validar
-        # para evitar errores
-        if (data.get('profileType')== ProfileEnum.ADMIN.value): # Es un admin
-            data.pop('idCompany')
-
-        # SI es una compañía o es admin el cliente también sera null
-        if (data.get('profileType') == ProfileEnum.ADMIN.value or data.get('profileType') == ProfileEnum.COMPANY.value ):
-            data.pop('idClient')
-
+        print("UserSerializer validate: ingresa a validar los datos ngrese a validar los datos recibidos, esto lo hace despues de que los parametros"
+               "minimos se reciban")
         return data
 
     def update(self, instance, validated_data):
