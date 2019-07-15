@@ -18,6 +18,7 @@ from Apps.encuestador.models import LanguageChoice
 from rest_framework.views import APIView
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db import IntegrityError
 from django.conf import settings
 from datetime import datetime, timedelta
 from django.contrib.auth import authenticate
@@ -312,8 +313,13 @@ class UserSerializer(serializers.ModelSerializer):
     )
 
     profileType = serializers.IntegerField()
-    company_id = serializers.IntegerField()
-    client_id = serializers.IntegerField()
+    # Con la propiedad de required = false
+    # If your <field_name> is declared on your serializer with the parameter required=False
+    # then this validation step will not take place if the field is not included.
+    # https://www.django-rest-framework.org/api-guide/serializers/
+
+    company_id = serializers.IntegerField(required=False)
+    client_id = serializers.IntegerField(required=False)
     token = serializers.CharField(max_length=255, read_only=True)
     company = CompanySerializer(many=False, read_only=True)
     client= ClientSerializer(many=False, read_only=True)
@@ -339,27 +345,64 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Use the `create_user` method we wrote earlier to create a new user.
-        # FIXME verificar q no exista
         # Para asegurar que el username es el mismo email
+        print ("Datos validados", validated_data)
         validated_data['username'] = validated_data['email']
 
-        # 1 es admin
-        if validated_data['profileType'] == 1:
-            user = User.objects.create_superuser(**validated_data)
-        else:
-            user = User.objects.create_user(**validated_data)
-        return user
+        print ("UserSerializer create : ingrese a validar los datos recibidos")
 
-    """
+        user = {}
+        try:
+            # 1 es admin
+            if validated_data['profileType'] == 1:
+                user = User.objects.create_superuser(**validated_data)
+            else:
+                user = User.objects.create_user(**validated_data)
+            return user
+        except (IntegrityError):
+            print ("error")
+            raise serializers.ValidationError('Ya existe registrado un usuario con el email '+ validated_data['email'])
+
+    def validate(self, data):
+        print("UserSerializer validate: ingresa a validar los datos")
+        # Passwords should not be handled with `setattr`, unlike other fields.
+        # Django provides a function that handles hashing and
+        # salting passwords. That means
+        # we need to remove the password field from the
+        # `validated_data` dictionary before iterating over it.
+        password = data.pop('password', None)
+
+        # Segun el rol la compañia y el cliente puede ser null entonces si es del caso se sacan de los datos validar
+        # para evitar errores
+        if (data.get('profileType')== ProfileEnum.ADMIN.value): # Es un admin
+            data.pop('idCompany')
+
+        # SI es una compañía o es admin el cliente también sera null
+        if (data.get('profileType') == ProfileEnum.ADMIN.value or data.get('profileType') == ProfileEnum.COMPANY.value ):
+            data.pop('idClient')
+
+        return data
+
     def update(self, instance, validated_data):
         #Performs an update on a User
 
+        print ("UserSerializer update: ingrese a actualizar los datos")
         # Passwords should not be handled with `setattr`, unlike other fields.
         # Django provides a function that handles hashing and
         # salting passwords. That means
         # we need to remove the password field from the
         # `validated_data` dictionary before iterating over it.
         password = validated_data.pop('password', None)
+
+        # Segun el rol la compañia y el cliente puede ser null entonces si es del caso se sacan de los datos validar
+        # para evitar errores
+        if (validated_data.get('profileType')== ProfileEnum.ADMIN.value): # Es un admin
+            company_id = validated_data.pop('company_id', None)
+
+        # SI es una compañía o es admin el cliente también sera null
+        if (validated_data.get('profileType') == ProfileEnum.ADMIN.value or validated_data.get('profileType') == ProfileEnum.COMPANY.value ):
+            client_id = validated_data.pop('company_id', None)
+
         for (key, value) in validated_data.items():
             # For the keys remaining in `validated_data`, we will set them on
             # the current `User` instance one at a time.
@@ -379,7 +422,7 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
-    """
+
 class LoginByPwdSerializer(serializers.Serializer):
 
     # Estos campos aqui son super importanes pq si el serializador no viene de un modelo entonces solo va entender lo que este aqui definido.
@@ -387,7 +430,6 @@ class LoginByPwdSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=255,write_only=True)
     token = serializers.CharField(max_length=255, read_only=True)
     user = UserSerializer(many=False, required=False)
-
     def validate(self, data):
         # The `validate` method is where we make sure that the current
         # instance of `LoginSerializer` has "valid". In the case of logging a
@@ -431,9 +473,10 @@ class LoginByPwdSerializer(serializers.Serializer):
         # we pass `email` as the `username` value since in our User
         # model we set `USERNAME_FIELD` as `email`.
         user = authenticate(username=email, password=password)
+        print ("SERIALIZER LoginByPwdSerializer  usuario autenticado" , user)
         if user == None:
             raise serializers.ValidationError(
-                'No se encontró un ningún usuario con la combinación de email/contraseña'
+                'No se encontró ningún usuario con la combinación de email/contraseña'
             )
 
         # Django provides a flag on our `User` model called `is_active`. The
@@ -445,6 +488,24 @@ class LoginByPwdSerializer(serializers.Serializer):
                 'El usuario se encuentra inactivo'
             )
 
+        # Dado que existiran usuarios sin cliente como los que tiene perfil de administrador o compañia se considera ese caso
+        client_id = None
+        company_id = None
+        company = None
+        client = None
+        print ("LoginByPwdSerializer validate user profile ", user.profileType)
+        print("LoginByPwdSerializer validate company ", user.company)
+        if user.profileType == ProfileEnum.CLIENT.value:
+            print("is client")
+            client_id = user.client.id
+            company_id = user.company.id
+            company = user.company
+            client = user.client
+        elif user.profileType == ProfileEnum.COMPANY.value:
+            print("is company")
+            company_id = user.company.id
+            company = user.company
+
         # The `validate` method should return a dictionary of validated data.
         # This is the data that is passed to the `create` and `update` methods
         # that we will see later on.
@@ -452,10 +513,11 @@ class LoginByPwdSerializer(serializers.Serializer):
             'email': user.email,
             'profileType': user.profileType,
             'token': user.token,
-            'company_id': user.company.id,
-            'client_id': user.client.id,
+            'company_id': company_id,
+            'client_id': client_id,
+            'client': client,
             'id': user.id,
-            'company': user.company,
+            'company': company,
             'username': user.username
         }
 
@@ -468,7 +530,6 @@ class LoginByCodeSerializer(serializers.Serializer):
     prefix = serializers.CharField(max_length=255,write_only=True)
     customized_instrument = CustomizedInstrumentSerializer(many=False, read_only=True, required=False)
     token = serializers.CharField(max_length=255, read_only=True)
-    user = UserSerializer(many=False, required=False)
 
     def validate(self, data):
         # The `validate` method is where we make sure that the current
@@ -500,7 +561,7 @@ class LoginByCodeSerializer(serializers.Serializer):
                 'customized_instrument': CustomizedInstrumentSerializer(customized_instrument_to_client, context={'request': None}).data,  #FIXME para retirar las credenciales de acceso
                 'token': self._generate_jwt_token(customized_instrument_to_client),
                 'config_survey':ConfigSurveysByClientsSerializer(config_survey,context={'request': None}).data,
-                'profile': 4 #PARTICIPANT by default
+                'profileType': 4 #PARTICIPANT by default
             }
             #print("Data que retorna el serializador de login" + str(data['customized_instrument']) + " "+ str(data['user']) + str(data['token']))
             return data

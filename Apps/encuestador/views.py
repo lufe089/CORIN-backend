@@ -42,6 +42,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 # Create your views here.
@@ -86,6 +87,25 @@ class ClientViewSet (viewsets.ModelViewSet):
 class ConfigSurveysByClientsViewSet (viewsets.ModelViewSet):
     serializer_class = ConfigSurveysByClientsSerializer
     queryset = Config_surveys_by_clients.objects.all()
+
+    @action(detail=False, methods=['post'])
+    def by_company(self, request):
+        idCompany = request.data.get("idCompany", None)
+
+        isAdmin = request.data.get('isAdmin', False)
+        configuredSurveys = []
+
+        if (idCompany == None and isAdmin):
+            # Se retornan todos las configuraciones que se encuentren
+            configuredSurveys = Config_surveys_by_clients.objects.all()
+        elif (idCompany != None):
+            # Consultar todos los ids de clientes asociados a una compañia
+            configuredSurveys = Config_surveys_by_clients.objects.filter(client__company__id=idCompany)
+        # Como serializar los datos para poderlos retornar en el request
+        serializer = ConfigSurveysByClientsSerializer(configuredSurveys, many=True)
+        print("VIEW ConfigSurveysByClientsViewSet byCompany: isAdmin, idCompany " , serializer.data , isAdmin, idCompany)
+        return Response(serializer.data)
+
 
 class ResponseFormatViewSet(viewsets.ModelViewSet):
     serializer_class = ResponseFormatSerializer
@@ -171,12 +191,16 @@ class UsersViewSet (viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def users_by_company(self,request):
-        idCompany = self.request.data['idCompany']
+        idCompany = request.data.get("idCompany", None)
 
-        if (idCompany == None):
+        isAdmin = request.data.get('isAdmin', False)
+        users = []
+        print("view  users_by_company idCompany  isAdmin", idCompany, isAdmin)
+
+        if (idCompany == None and isAdmin):
             # Se retornan todos los usuarios
             users = User.objects.all()
-        else:
+        elif (idCompany != None):
             # Consultar todos los ids de clientes asociados a una compañia
             users = User.objects.filter(company__id=idCompany)
         # Como serializar los datos para poderlos retornar en el request
@@ -186,15 +210,21 @@ class UsersViewSet (viewsets.ModelViewSet):
 
 
     def update(self, request,  pk=None):
+        # Este metodo se debe sobrescribir para que se acepten actualizaciones parciales
         serializer_data = self.request.data
 
         # Here is that serialize, validate, save pattern we talked about
         # before.
-        print("User udpdate datos recibidos:", serializer_data)
-        serializer = self.serializer_class(data=serializer_data, partial=True)
+        print("UsersViewSet update:", serializer_data)
+        # Esto podría lanzar una exception pero no la manejo pq si pasa necesito que falle en la vista
+        user = User.objects.get(id=pk)
+        # Se tiene que pasar el instance para que el metodo save sepa que es un update y no un create
+        serializer = UserSerializer(instance=user, data=serializer_data)
         serializer.is_valid(raise_exception=True)
+        # Tengo que pasar los datos de la instancia recibidos al serializador para que haga update y no create
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class ResponsesView(APIView):
     @api_view(['GET'])
@@ -312,6 +342,54 @@ class ResponsesView(APIView):
         overall_average_count = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'), n= Count('participant_response_header',distinct=True))
 
+        # Construccion de los promedios por categorias, dimensiones y componentes anidados
+        level_one_list = []
+        print ("VIEW ResponsesView method: averageFilters  .. construyendo nested table")
+        print("VIEW ResponsesView method: averageFilters categories average ..")
+        print (categories_average)
+        for average_category in categories_average:
+            level_one = {'id':average_category['idElement'], 'name': average_category['name'], 'average': average_category['average'], 'n':average_category['n'],  'level': 1}
+            print("VIEW ResponsesView Category " + str(level_one))
+            dimensions_by_category_average = Items_respon_by_participants.objects.filter(
+                participant_response_header__id__in=responseHeadersByCompany)\
+                .filter(item__category__id = average_category['idElement'])\
+                .values("item__dimension_id").annotate(
+                name=F('item__dimension__name'), category=F('item__category__name'), idElement=F('item__dimension_id'),
+                average=Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)).order_by(
+                'item__category__name', '-average')
+            # print("VIEW ResponsesView dimensions by category" + str(dimensions_by_category_average))
+
+            # Se crean objetos del nivel 2 de anidamiento que corresponden a las dimensiones para luego buscar los componentes
+            # relacionados con estas dimensiones
+            level_two_list =[]
+            for average_dimension in dimensions_by_category_average:
+                level_two = {'id': average_dimension['idElement'], 'name': average_dimension['name'], 'level': 2,
+                         'average': average_dimension['average'], 'n': average_dimension['n']}
+                print("VIEW ResponsesView dimension " + str(average_dimension))
+                components_by_dimension_average = Items_respon_by_participants.objects.\
+                    filter(participant_response_header__id__in=responseHeadersByCompany)\
+                    .filter(item__dimension__id=average_dimension['idElement']) \
+                    .exclude(item__component=None) \
+                    .values("item__component_id")\
+                    .annotate(name=F('item__component__name'), idElement=F('item__component_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True))\
+                    .order_by('-average')
+                print("VIEW componets by dimensions")
+                # Lista de componentes que conforman la dimension
+                level_two['items'] = components_by_dimension_average
+
+                #Se adiciona el elemento de nivel 2 a la lista completa de nivel 2
+                level_two_list.append(level_two)
+                print("VIEW ResponsesView components by dimension" + str(components_by_dimension_average))
+
+            # Se completa el objeto de nivel uno con la lista que resulta del nivel 2
+            level_one['items'] = level_two_list
+
+            #Se agrega el objeto de nivel uno a la lista de nivel 1
+            level_one_list.append(level_one)
+
+        print("VIEW ResponsesView lista anidada")
+        print(level_one_list)
+
         # print (request)
         content = {'overall_average': overall_average_count['average'], 'n': overall_average_count['n'],
                    "average_by_dimensions": dimensions_average, "average_by_components": components_average,
@@ -320,7 +398,8 @@ class ResponsesView(APIView):
                    "categories_average_by_no_directives": categories_average_by_no_directives,
                    "categories_average_by_area": list_areas_by_categories_average_todos,
                    "average_by_area": list_average_by_area,
-                   "category_names":categories_labels}
+                   "category_names":categories_labels,
+                   'nested_average': level_one_list }
         # return Response(content)
         return Response(content)
 
@@ -328,15 +407,28 @@ class ResponsesView(APIView):
     def getClientAndConfiguration(request, format=None):
         """ Trae informacion del cliente y las configuraciones relacionadas con el cliente"""
 
-        idCompany = request.data['idCompany']
-        # Consultar todos los ids de clientes asociados a una compañia
-        ids_clients = Client.objects.filter(company__id=idCompany).values("id")
+        #idCompany = request.data['idCompany']
+        idCompany = request.data.get("idCompany", None)
 
+        isAdmin = request.data.get('isAdmin', False)
+        isCompany = request.data.get('isCompany', False)
+        ids_clients = []
 
-        # FIXME poner el filtro de la compania
+        print("view  getClientAndConfiguration idCompany  isAdmin  is Company;", idCompany, isAdmin, isCompany)
+        if isAdmin or isCompany:
+            if idCompany == None:
+                # Se consultan todos los clientes sin filtro pq esto solo lo puede hacer el usuario admin
+                print("VIEW getClientAndConfiguration consulto clientes para todas las compañias ")
+                ids_clients = Client.objects.values("id")
+            else:
+                # Consultar todos los ids de clientes asociados a una compañia
+                print ("VIEW getClientAndConfiguration consulto clientes para una compañia con id ", idCompany)
+                ids_clients = Client.objects.filter(company__id=idCompany).values("id")
+
+        print (" VIEW getClientAndConfiguration ids_clients", str(ids_clients))
         # max_survey=Config_surveys_by_clients.objects.filter(client=OuterRef('pk'))),
         # Los ultimos dos campos los agregue para que se puedan mostrar facilmente en una lista desplegable, pues esas listas esperan el id con el campo value y el texto con el campo text
-        clients_with_configuration= Config_surveys_by_clients.objects.all().filter(client__id__in=ids_clients).values('client__id', 'client__client_company_name', 'client__identification', 'client__company_id','client__constitution_year', 'client__number_employees',
+        clients_with_configuration= Config_surveys_by_clients.objects.all().filter(client__id__in=ids_clients).values('client__id', 'client__client_company_name', 'client__identification', 'client__company_id','client__company__name','client__constitution_year', 'client__number_employees',
                   'client__is_corporate_group', 'client__is_family_company',"max_surveys","used_surveys").annotate(config_id=F('id'),text=F('client__client_company_name'), value=F('client__id'))
         #clients_without_configuration= Client.objects.all().annotate(max_surveys=Value('0'),used_surveys=Value('0'))
 
@@ -344,12 +436,12 @@ class ResponsesView(APIView):
         clients_with_configuration_ids = Config_surveys_by_clients.objects.all().values('client__id')
 
         # Se hace la resta en los campos que se anotan solo como truco para que los valores sean zero pues no encontre como inicializarlos realmente en cero
-        clients_without_configuration= Client.objects.exclude(id__in=clients_with_configuration_ids).filter(id__in=ids_clients).values('id', 'client_company_name', 'identification', 'company_id','constitution_year', 'number_employees',
+        clients_without_configuration= Client.objects.exclude(id__in=clients_with_configuration_ids).filter(id__in=ids_clients).values('id', 'client_company_name', 'identification', 'company_id','company__name','constitution_year', 'number_employees',
                   'is_corporate_group', 'is_family_company').annotate(max_surveys=Count('id')-Count('id'),used_surveys=Count('id')-Count('id'),config_id=Count('id')-Count('id'), text=F('client_company_name'),value=F('id')).order_by('-updated_at')
 
         #FIXME - Tratar de agregar los campos que faltan manualmente antes de retornar los datos
         all_clients= clients_without_configuration.union(clients_with_configuration)
-        print(all_clients)
+        print("Clients and config survey ", all_clients)
         return Response(all_clients)
         # return Response ()
 
@@ -402,12 +494,23 @@ class ResponsesView(APIView):
     @api_view(['POST'])
     def getParticipantResponsesToDownload(request):
 
-        idCompany = request.data['idCompany']
+        # Si no llega ese parametro pone None en su campo
+        idClient = request.data.get("idClient", None)
+        idCompany = request.data.get("idCompany", None)
+        isClient = request.data.get("isClient", None)
 
-        # Todos los ids de los clientes asociados a la compania
-        ids_clients= Client.objects.filter(company__id=idCompany).values("id")
+        ids_clients = []
+        print ("getParticipantResponsesToDownload  idClient and idCompany", str(idClient), str(idCompany), str(request.data))
 
-        #print(ids_clients)
+        if idClient == None and idCompany != None and isClient!= True:
+            # Esta fncionalidad por ahroa estara sin uso.
+            # Si no se recibe cliente pero si compañia se consultan todos los clientes asociados a la compañia
+            ids_clients= Client.objects.filter(company__id=idCompany).values("id")
+        elif idClient != None:
+            # La lista de id de clientes solo tendria el id del cliente que se recibe
+            ids_clients = [idClient]
+
+        print("getParticipantResponsesToDownload ... ids_clients", ids_clients)
         # Consultar las respuestas
         all_responses_by_participants = Items_respon_by_participants.objects.filter(
                 participant_response_header__customized_instrument__config_survey__client__id__in=ids_clients).values(
@@ -417,6 +520,8 @@ class ResponsesView(APIView):
                                                                        client_id=F('participant_response_header__customized_instrument__config_survey__client__id'),
                                                                        client_name=F('participant_response_header__customized_instrument__config_survey__client__client_company_name'),
                                                                        pregunta_id=F('item__id')).order_by('item__id','participant_response_header__id')
+
+        print ("VIEW getParticipantResponsesToDownload  responses" + str(all_responses_by_participants))
         return Response(all_responses_by_participants)
 
     @api_view(['POST'])
@@ -455,7 +560,7 @@ class ResponsesView(APIView):
 class LoginAPIView(APIView):
     permission_classes = (AllowAny,)
     #renderer_classes = (UserJSONRenderer,)
-    serializer_class = LoginByCodeSerializer
+
     """
         Esta vista controla las peticiones de autenticacion cuando se hace por código de acceso y prefijo
     """

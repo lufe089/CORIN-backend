@@ -311,12 +311,10 @@ class User (AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ('username',)
 
     # Campos propios del modelo
-    company = models.ForeignKey(Company, on_delete=models.SET_DEFAULT,
-                                  default=None)
-    client = models.ForeignKey(Client, on_delete=models.SET_DEFAULT,
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,
+                                  default=None, null=True, blank=True)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE,
                                 default=None, null=True, blank=True)
-
-    models.ForeignKey(Company, on_delete=models.CASCADE)
 
     profileType = models.IntegerField(
         choices=[(tag, tag.value) for tag in ProfileEnum]  # Choices is a list of Tuple
@@ -370,12 +368,15 @@ class User (AbstractBaseUser, PermissionsMixin):
         print("future number" + str(timegm(future.timetuple())))
 
         exp_time = timegm(datetime.utcnow().utctimetuple())
-        id_client =None
+        id_client = None
+        id_company = None
         if (self.client != None):
             id_client = self.client.id
+        if (self.company != None):
+            id_company = self.company.id
         payload = {
             #'email': self.email,
-            'company_id':self.company.id,
+            'company_id':id_company,
             'client_id': id_client,
             'profile': self.profileType,
             'mode': 'byPwd',  # Indica que la autenticación fue por codigo de acceso, importante en la clase backend

@@ -26,6 +26,7 @@ def insert_data(apps, schema_editor):
     Surveys_by_client= apps.get_model(APP_NAME, 'Surveys_by_client')
     Customized_instrument= apps.get_model(APP_NAME, 'Customized_instrument')
     Config_surveys_by_clients= apps.get_model(APP_NAME, 'Config_surveys_by_clients')
+    User = apps.get_model(APP_NAME,'User')
 
     ###  Clean the data from the tables in which we introduce data in this method
     Instrument_structure_history.objects.all().delete()
@@ -43,6 +44,7 @@ def insert_data(apps, schema_editor):
     Surveys_by_client.objects.all().delete()
     Config_surveys_by_clients.objects.all().delete()
     Customized_instrument.objects.all().delete()
+    User.objects.all().delete()
 
 
     ### This list is used later for adding elements to the evaluation instrument
@@ -864,23 +866,54 @@ def insert_data(apps, schema_editor):
 
 
     # Se crea una compañia para hacer pruebas
-    companyTest = Company(company_contact_name ="Contacto de prueba", name="Compania Julia")
-    companyTest.save()
+    companyTest1 = Company(company_contact_name ="Contacto de prueba", name="Compania Julia")
+    companyTest2 = Company(company_contact_name="Luisa Rincon", name="TintoTic")
+    companyTest1.save()
+    companyTest2.save()
 
     # Se crea un cliente de prueba
-    clientTest = Client(company=companyTest, client_logo="",contact="Julia Clemencia",client_company_name="Empresa 1", identification="50", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False, created_at=datetime.datetime.now())
-    clientTest.save()
+    clientTest1 = Client(company=companyTest1, client_logo="",contact="Julia Clemencia",client_company_name="Cliente1-company Julia", identification="50", constitution_year=2018, number_employees=4, is_corporate_group=False, is_family_company=False, created_at=datetime.datetime.now())
+    clientTest1.save()
+    clientTest2 = Client(company=companyTest2, client_logo="", contact="Client 1- tinto tic",
+                        client_company_name="Cliente1-tinto tic", identification="50", constitution_year=2017,
+                        number_employees=5, is_corporate_group=False, is_family_company=False,
+                        created_at=datetime.datetime.now())
+    clientTest2.save()
 
 
     # Se configura un survey personalizado
-    config_survey = Config_surveys_by_clients (client=clientTest,instrument_header=instrument_header, max_surveys=5,used_surveys=0)
-    config_survey.save()
+    config_survey1 = Config_surveys_by_clients (client=clientTest1,instrument_header=instrument_header, max_surveys=5,used_surveys=0)
+    config_survey1.save()
+
+    config_survey2 = Config_surveys_by_clients(client=clientTest2, instrument_header=instrument_header, max_surveys=25,
+                                               used_surveys=0)
+    config_survey2.save()
 
     # Se crea un survey personalizado para el cliente
-    customized_instrument= Customized_instrument (config_survey=config_survey,custom_contact_info=contact, access_code="12345", prefix="C1", custom_user_instructions=user_instructions, custom_thanks="Gracias por participar, hasta pronto. ")
+    customized_instrument= Customized_instrument (config_survey=config_survey1,custom_contact_info=contact, access_code="12345", prefix="C1", custom_user_instructions=user_instructions, custom_thanks="Gracias por participar, hasta pronto. ")
     customized_instrument.save()
 
+    # Usuarios para pruebas 1 usurio adminstrador, 2 de compañias y 2 clientes
+    #password="12345678"
+    password ="pbkdf2_sha256$120000$nD2TFvZG28bl$FjgsLnizUE1L0i4yYJttdSp9N7VyUFu/zcn9en4zq+g="
+    admin = User(email='lufe089@gmail.com', username='lufe089@gmail.com', profileType=1, password=password)
+    # admin.set_password(password)
+    admin.save()
 
+    userCompay1 =  User(email='a1@companyjulia.com', username='a1@companyjulia.com', profileType=2, password=password, company=companyTest1)
+    userCompay1.save()
+
+    userCompay2 = User(email='a1@tintotic.com', username='a1@tintotic.com', profileType=2, password=password,
+                       company=companyTest2)
+    userCompay2.save()
+
+    userClient1 = User(email='b1@companyjulia.com', username='a1@companyjulia.com', profileType=3, password=password,
+                       company=companyTest1, client=clientTest1)
+    userClient1.save()
+
+    userClient2 = User(email='b1@tintotic.com', username='a1@tintotic.com', profileType=3, password=password,
+                       company=companyTest2, client=clientTest2)
+    userClient2.save()
 
 
 class Migration(migrations.Migration):
