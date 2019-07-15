@@ -34,6 +34,7 @@ from Apps.encuestador.serializers import TranslatedInstrumentSerializer
 from Apps.encuestador.serializers import LoginByCodeSerializer
 from Apps.encuestador.serializers import LoginByPwdSerializer
 from Apps.encuestador.serializers import UserSerializer
+from django.db.models import Q
 
 """
 """
@@ -58,6 +59,67 @@ def consultActiveInstrument():
     except Exception as e:
         print("ERROR: Excepcion consultando instrument_header , el get no arrojo resultados en el metodo ConsultActiveInstrument")
         return None
+
+def getAnidatedResultsByCategory(categories_average, responseHeadersByCompany, extrafilter = Q(participant_response_header__is_directive=0) |Q(participant_response_header__is_directive=1)):
+        # Construccion de los promedios por categorias, dimensiones y componentes anidados, el extrafilter es importante
+        # porque cuando es necesario filtra los resultados y cuando non es necesario tiene una condicion que siempre incluye todos los valores
+        # porque si lo dejaba null tenia errores
+        level_one_list = []
+        print("VIEW ResponsesView method: averageFilters  .. construyendo nested table")
+        print("VIEW ResponsesView method: averageFilters categories average ..")
+        print(categories_average)
+        for average_category in categories_average:
+            level_one = {'id': average_category['idElement'], 'name': average_category['name'],
+                         'average': average_category['average'], 'n': average_category['n'], 'level': 1}
+            print("VIEW ResponsesView Category " + str(level_one))
+            dimensions_by_category_average = Items_respon_by_participants.objects.filter(
+                participant_response_header__id__in=responseHeadersByCompany) \
+                .filter(item__category__id=average_category['idElement']) \
+                .filter(extrafilter)\
+                .values("item__dimension_id").annotate(
+                name=F('item__dimension__name'), category=F('item__category__name'), idElement=F('item__dimension_id'),
+                average=Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)).order_by(
+                'item__category__name', '-average')
+            # print("VIEW ResponsesView dimensions by category" + str(dimensions_by_category_average))
+
+            # Se crean objetos del nivel 2 de anidamiento que corresponden a las dimensiones para luego buscar los componentes
+            # relacionados con estas dimensiones
+            level_two_list = []
+            for average_dimension in dimensions_by_category_average:
+                level_two = {'id': average_dimension['idElement'], 'name': average_dimension['name'], 'level': 2,
+                             'average': average_dimension['average'], 'n': average_dimension['n']}
+                print("VIEW ResponsesView dimension " + str(average_dimension))
+                components_by_dimension_average = Items_respon_by_participants.objects. \
+                    filter(participant_response_header__id__in=responseHeadersByCompany) \
+                    .filter(item__dimension__id=average_dimension['idElement']) \
+                    .exclude(item__component=None) \
+                    .values("item__component_id") \
+                    .annotate(name=F('item__component__name'), idElement=F('item__component_id'),
+                              average=Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)) \
+                    .order_by('-average')
+                print("VIEW componets by dimensions")
+                # Lista de componentes que conforman la dimension
+                list_of_components = []
+                for component in components_by_dimension_average:
+                    list_of_components.append(component)
+
+                level_two['items'] = list_of_components
+
+                # Se adiciona el elemento de nivel 2 a la lista completa de nivel 2
+                level_two_list.append(level_two)
+                print("VIEW ResponsesView components by dimension" + str(components_by_dimension_average))
+
+            # Se completa el objeto de nivel uno con la lista que resulta del nivel 2
+            level_one['items'] = level_two_list
+
+            # Se agrega el objeto de nivel uno a la lista de nivel 1
+            level_one_list.append(level_one)
+
+        print("VIEW ResponsesView lista anidada")
+        print(level_one_list)
+        return level_one_list
+
+
 
 def consultAreas():
     # Nombre dado a la tabla que tiene las áreas
@@ -247,7 +309,6 @@ class ResponsesView(APIView):
             is_active=True).values('new_item__id')
         queryset = Trans_item.objects.filter(item__in=activeItemsId).values().filter(i18n_code=LanguageChoice.ES.name)
 
-
     @api_view(['POST'])
     # @renderer_classes((JSONRenderer,))
     def averageFilters(request, format=None):
@@ -316,10 +377,14 @@ class ResponsesView(APIView):
 
         # Usa el atributo f para renombrar el valor de un campo. Esto lo hago para que en la tabla de la vista todos se llamen igual( catogiras, dimensions,components) y puedan dibujar mas facil. Tiene que tener al menos un campo value para que funcione
         categories_average = Items_respon_by_participants.objects.filter(
-            participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('name')
+            participant_response_header__id__in=responseHeadersByCompany).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('average')
 
         categories_average_by_directives= Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).filter(participant_response_header__is_directive=1).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True)).order_by('item__category__name')
+
+        # Obtiene la lista anidada de valores para no directivos
+        nested_list_categories_by_directives = getAnidatedResultsByCategory(categories_average_by_directives,
+                                                                               responseHeadersByCompany, Q(participant_response_header__is_directive=1))
 
         categories_labels = ItemClassification.objects.filter(type=ClassificationChoice.CATEGORY.value).values('name').annotate(key=F('name')).order_by('name')
         print("Category labeles")
@@ -338,64 +403,23 @@ class ResponsesView(APIView):
                 participant_response_header__id__in=responseHeadersByCompany).filter(
                 participant_response_header__is_directive=0).values("item__category_id").annotate(name=F('item__category__name'), idElement=F('item__category_id'),
                 average=Avg('answer_numeric'), n=Count('participant_response_header',distinct=True)).order_by('item__category__name')
+
+        # Obtiene la lista anidada de valores para no directivos
+        nested_list_categories_by_no_directives = getAnidatedResultsByCategory(categories_average_by_no_directives, responseHeadersByCompany, Q(participant_response_header__is_directive=0))
+
         # Overall average
         overall_average_count = Items_respon_by_participants.objects.filter(
             participant_response_header__id__in=responseHeadersByCompany).aggregate(average=Avg('answer_numeric'), n= Count('participant_response_header',distinct=True))
 
-        # Construccion de los promedios por categorias, dimensiones y componentes anidados
-        level_one_list = []
-        print ("VIEW ResponsesView method: averageFilters  .. construyendo nested table")
-        print("VIEW ResponsesView method: averageFilters categories average ..")
-        print (categories_average)
-        for average_category in categories_average:
-            level_one = {'id':average_category['idElement'], 'name': average_category['name'], 'average': average_category['average'], 'n':average_category['n'],  'level': 1}
-            print("VIEW ResponsesView Category " + str(level_one))
-            dimensions_by_category_average = Items_respon_by_participants.objects.filter(
-                participant_response_header__id__in=responseHeadersByCompany)\
-                .filter(item__category__id = average_category['idElement'])\
-                .values("item__dimension_id").annotate(
-                name=F('item__dimension__name'), category=F('item__category__name'), idElement=F('item__dimension_id'),
-                average=Avg('answer_numeric'), n=Count('participant_response_header', distinct=True)).order_by(
-                'item__category__name', '-average')
-            # print("VIEW ResponsesView dimensions by category" + str(dimensions_by_category_average))
-
-            # Se crean objetos del nivel 2 de anidamiento que corresponden a las dimensiones para luego buscar los componentes
-            # relacionados con estas dimensiones
-            level_two_list =[]
-            for average_dimension in dimensions_by_category_average:
-                level_two = {'id': average_dimension['idElement'], 'name': average_dimension['name'], 'level': 2,
-                         'average': average_dimension['average'], 'n': average_dimension['n']}
-                print("VIEW ResponsesView dimension " + str(average_dimension))
-                components_by_dimension_average = Items_respon_by_participants.objects.\
-                    filter(participant_response_header__id__in=responseHeadersByCompany)\
-                    .filter(item__dimension__id=average_dimension['idElement']) \
-                    .exclude(item__component=None) \
-                    .values("item__component_id")\
-                    .annotate(name=F('item__component__name'), idElement=F('item__component_id'),average=Avg('answer_numeric'),n=Count('participant_response_header',distinct=True))\
-                    .order_by('-average')
-                print("VIEW componets by dimensions")
-                # Lista de componentes que conforman la dimension
-                level_two['items'] = components_by_dimension_average
-
-                #Se adiciona el elemento de nivel 2 a la lista completa de nivel 2
-                level_two_list.append(level_two)
-                print("VIEW ResponsesView components by dimension" + str(components_by_dimension_average))
-
-            # Se completa el objeto de nivel uno con la lista que resulta del nivel 2
-            level_one['items'] = level_two_list
-
-            #Se agrega el objeto de nivel uno a la lista de nivel 1
-            level_one_list.append(level_one)
-
-        print("VIEW ResponsesView lista anidada")
-        print(level_one_list)
+        # Obtiene la lista anidada de valores
+        level_one_list = getAnidatedResultsByCategory(categories_average, responseHeadersByCompany)
 
         # print (request)
         content = {'overall_average': overall_average_count['average'], 'n': overall_average_count['n'],
                    "average_by_dimensions": dimensions_average, "average_by_components": components_average,
-                   "average_by_categories": categories_average,
-                   "categories_average_by_directives": categories_average_by_directives,
-                   "categories_average_by_no_directives": categories_average_by_no_directives,
+                   "average_by_categories": level_one_list,
+                   "categories_average_by_directives": nested_list_categories_by_directives,
+                   "categories_average_by_no_directives": nested_list_categories_by_no_directives,
                    "categories_average_by_area": list_areas_by_categories_average_todos,
                    "average_by_area": list_average_by_area,
                    "category_names":categories_labels,
@@ -498,11 +522,15 @@ class ResponsesView(APIView):
         idClient = request.data.get("idClient", None)
         idCompany = request.data.get("idCompany", None)
         isClient = request.data.get("isClient", None)
+        isAdmin = request.data.get("isAdmin", None)
 
         ids_clients = []
         print ("getParticipantResponsesToDownload  idClient and idCompany", str(idClient), str(idCompany), str(request.data))
 
-        if idClient == None and idCompany != None and isClient!= True:
+        if idCompany == None and isAdmin:
+            # Para el usuario administrador se daran los resutlados de todos los clientes
+            ids_clients = Client.objects.all()
+        elif idClient == None and idCompany != None and isClient!= True:
             # Esta fncionalidad por ahroa estara sin uso.
             # Si no se recibe cliente pero si compañia se consultan todos los clientes asociados a la compañia
             ids_clients= Client.objects.filter(company__id=idCompany).values("id")
