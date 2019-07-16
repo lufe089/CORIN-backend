@@ -33,6 +33,7 @@ from Apps.encuestador.serializers import TranslatedItemSerializer
 from Apps.encuestador.serializers import TranslatedInstrumentSerializer
 from Apps.encuestador.serializers import LoginByCodeSerializer
 from Apps.encuestador.serializers import LoginByPwdSerializer
+from Apps.encuestador.serializers import InstrumentHeaderSerializer
 from Apps.encuestador.serializers import UserSerializer
 from django.db.models import Q
 
@@ -639,6 +640,19 @@ class SimpleActiveCategoriesViewSet(viewsets.ModelViewSet):
     categoriesId = Instrument_structure_history.objects.filter(instrument_header=active_instrument).filter(
         is_active=True).values('new_item__category__id').distinct()
     queryset = ItemClassification.objects.filter(id__in=categoriesId).order_by('-name')
+
+class InstrumentHeaderViewSet(viewsets.ModelViewSet):
+    serializer_class = InstrumentHeaderSerializer
+    #queryset = Instrument_header.objects.filter(is_active=1)[0]
+    queryset = Instrument_header.objects.filter(is_active=1)
+
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        # Traigo el instrumento activo
+        active_instrument = consultActiveInstrument()
+        serializer = InstrumentHeaderSerializer(active_instrument, many=False, context={'request': request})
+        print(serializer.data)
+        return Response(serializer.data)
 
 
 class SimpleActiveDimensionsViewSet(viewsets.ModelViewSet):

@@ -61,7 +61,7 @@ class InstrumentHeaderSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Instrument_header
         # fields = ('name', 'description','i18n_code','translations')
-        fields = ('version_name', 'is_active', 'start_date', 'end_date', "translations")
+        fields = ('id','version_name', 'is_active', 'start_date', 'end_date', "translations")
 
 def consultActiveInstrument():
     try:
